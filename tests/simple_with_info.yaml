@@ -1,0 +1,12 @@
+columns:
+  - name: id
+    provider: auto-increment
+
+  - name: company_email
+    provider: email
+    presence: 0.5
+
+info:
+  output_name: simple-renamed.parquet
+  output_format: parquet
+  rows: 1_234_567

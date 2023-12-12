@@ -1,0 +1,9 @@
+columns:
+  - name: id
+    provider: !auto-increment
+
+  - name: company_name
+    provider: !random-string
+
+  - name: email
+    provider: !email
