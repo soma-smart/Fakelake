@@ -1,0 +1,12 @@
+columns:
+  - name: id
+    provider: Increment.integer
+
+  - name: company_email
+    provider: Person.email
+    presence: 0.5
+
+info:
+  output_name: simple-renamed
+  output_format: parquet
+  rows: 1_234_567

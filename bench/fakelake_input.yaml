@@ -1,0 +1,8 @@
+columns:  
+  - name: name
+    provider: Random.String.alphanumeric
+
+info:
+  output_name: fakelake_bench
+  output_format: parquet
+  rows: 1_000_000

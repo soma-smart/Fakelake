@@ -1,0 +1,29 @@
+columns:
+  - name: id
+    provider: Increment.integer
+    start: 42
+    presence: 0.8
+
+  - name: first_name
+    provider: Person.fname
+
+  - name: last_name
+    provider: Person.lname
+
+  - name: company_email
+    provider: Person.email
+    domain: soma-smart.com
+
+  - name: created
+    provider: Random.Date.date
+    format: "%Y-%m-%d"
+    after: 2000-02-15
+    before: 2020-07-17
+  
+  - name: code
+    provider: Random.String.alphanumeric
+
+info:
+  output_name: all_options
+  output_format: parquet
+  rows: 1_234_567
