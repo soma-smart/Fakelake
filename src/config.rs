@@ -50,8 +50,8 @@ pub fn get_config_from_path(path: &PathBuf) -> Result<Config, FakeLakeError> {
         let presence = column["presence"].as_f64().unwrap_or(1.0);
 
         let provider: Box<dyn Provider> = match provider {
-            "auto-increment" => Box::new(AutoIncrementProvider::new_from_yaml(&parsed_yaml)),
-            "email" => Box::new(EmailProvider::new_from_yaml(&parsed_yaml)),
+            "auto-increment" => Box::new(AutoIncrementProvider::new_from_yaml(&column)),
+            "email" => Box::new(EmailProvider::new_from_yaml(&column)),
             _ => panic!("Unknown provider: {}", provider),
         };
 

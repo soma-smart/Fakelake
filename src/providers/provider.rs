@@ -11,7 +11,7 @@ pub enum Value {
 pub trait Provider {
     fn value(&self, index: u32) -> Value;
     fn get_parquet_type(&self) -> DataType;
-    fn new_from_yaml(yaml: &Vec<Yaml>) -> Self where Self: Sized;
+    fn new_from_yaml(column: &Yaml) -> Self where Self: Sized;
 }
 
 // Implement Debug for all types that implement Provider

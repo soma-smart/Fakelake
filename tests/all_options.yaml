@@ -1,0 +1,13 @@
+columns:
+  - name: id
+    provider: auto-increment
+    start: 42
+
+  - name: company_email
+    provider: email
+    domain: soma-smart.com
+
+info:
+  output_name: all_options.parquet
+  output_format: parquet
+  rows: 1_234_567

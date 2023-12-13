@@ -5,8 +5,10 @@ use std::iter::repeat_with;
 
 use crate::providers::provider::{Provider, Value};
 
+const DEFAULT_DOMAIN: &str = "example.com";
+
 pub struct EmailProvider {
-    pub domain: Option<String>,
+    pub domain: String,
 }
 
 impl Provider for EmailProvider {
@@ -14,16 +16,16 @@ impl Provider for EmailProvider {
         // return a random email address
         // generate a random string of length 10 (subject) + @ + random domain
         let subject: String = repeat_with(fastrand::alphanumeric).take(10).collect();
-        let domain = match &self.domain {
-            Some(domain) => domain,
-            None => "example.com",
-        };
-        return Value::String(format!("{}@{}", subject, domain));
+        return Value::String(format!("{}@{}", subject, self.domain));
     }
     fn get_parquet_type(&self) -> DataType {
         return DataType::Utf8;
     }
-    fn new_from_yaml(yaml: &Vec<Yaml>) -> EmailProvider {
-        return EmailProvider { domain:None };
+    fn new_from_yaml(column: &Yaml) -> EmailProvider {
+        let domain_option = column["domain"].as_str().unwrap_or(DEFAULT_DOMAIN).to_string();
+
+        return EmailProvider {
+            domain: domain_option
+        };
     }
 }
