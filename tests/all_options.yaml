@@ -2,6 +2,7 @@ columns:
   - name: id
     provider: auto-increment
     start: 42
+    presence: 0.8
 
   - name: company_email
     provider: email

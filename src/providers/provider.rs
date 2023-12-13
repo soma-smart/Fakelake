@@ -9,7 +9,7 @@ pub enum Value {
 }
 
 pub trait Provider {
-    fn value(&self, index: u32) -> Value;
+    fn value(&self, index: u32) -> Option<Value>;
     fn get_parquet_type(&self) -> DataType;
     fn new_from_yaml(column: &Yaml) -> Self where Self: Sized;
 }

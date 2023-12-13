@@ -72,20 +72,22 @@ pub fn generate_from_config(config: config::Config) {
 
             let array = match &parquet_type {
                 DataType::Int32 => {
-                    let mut vec: Vec<i32> = Vec::new();
+                    let mut vec: Vec<Option<i32>> = Vec::new();
                     for i in 0..rows_to_generate {
                         match column.provider.value(i) {
-                            provider::Value::Int32(value) => vec.push(value),
+                            Some(provider::Value::Int32(value)) => vec.push(Some(value)),
+                            None => vec.push(None),
                             _ => panic!("Wrong provider type"),
                         }
                     }
                     Arc::new(Int32Array::from(vec)) as ArrayRef
                 },
                 DataType::Utf8 => {
-                    let mut vec: Vec<String> = Vec::new();
+                    let mut vec: Vec<Option<String>> = Vec::new();
                     for i in 0..rows_to_generate {
                         match column.provider.value(i) {
-                            provider::Value::String(value) => vec.push(value),
+                            Some(provider::Value::String(value)) => vec.push(Some(value)),
+                            None => vec.push(None),
                             _ => panic!("Wrong provider type"),
                         }
                     }
@@ -108,7 +110,7 @@ fn get_schema_from_config(config: &config::Config) -> Schema {
     for column in &config.columns {
         // let parquet_type = provider::provider_conf_to_provider(&column.provider).get_parquet_type();
         let parquet_type = column.provider.get_parquet_type();
-        fields.push(Field::new(&column.name, parquet_type, false));
+        fields.push(Field::new(&column.name, parquet_type, true));
     }
 
     Schema::new(fields)
