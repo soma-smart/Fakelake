@@ -1,12 +1,12 @@
-use arrow_array::{ArrayRef, Int32Array, RecordBatch, BooleanArray, StringArray};
-use log::{debug, error, info, warn};
+use arrow_array::{ArrayRef, Int32Array, RecordBatch, StringArray};
+use log::{debug, info};
 use parquet::{arrow::ArrowWriter, basic::Compression, file::properties::WriterProperties};
 use arrow_schema::{Field, DataType, Schema};
 use std::path::PathBuf;
 use std::sync::Arc;
 
 use crate::{config, errors::FakeLakeError};
-use crate::providers::provider::{self, Provider};
+use crate::providers::provider;
 
 pub fn generate_from_paths(paths_to_config: Vec<PathBuf>) -> Result<(), FakeLakeError> {
     for path in paths_to_config {

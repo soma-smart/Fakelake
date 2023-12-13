@@ -1,8 +1,7 @@
 /// Config structs used by Fakelake during YAML parsing
 ///
-use std::{path::PathBuf, collections::BTreeMap};
+use std::path::PathBuf;
 
-use arrow_schema::DataType;
 use yaml_rust::YamlLoader;
 
 use crate::errors::FakeLakeError;
