@@ -1,8 +1,7 @@
 /// Config structs used by Fakelake during YAML parsing
 ///
-use std::{path::PathBuf, collections::BTreeMap};
+use std::path::PathBuf;
 
-use arrow_schema::DataType;
 use yaml_rust::YamlLoader;
 
 use crate::errors::FakeLakeError;
@@ -20,7 +19,6 @@ pub struct Config {
 pub struct Column {
     pub name: String,
     pub provider: Box<dyn Provider>,
-    pub presence: Option<f32>,
 }
 
 #[derive(Debug)]
@@ -47,15 +45,14 @@ pub fn get_config_from_path(path: &PathBuf) -> Result<Config, FakeLakeError> {
     for column in parsed_yaml[0]["columns"].as_vec().unwrap() {
         let name = column["name"].as_str().unwrap();
         let provider = column["provider"].as_str().unwrap();
-        let presence = column["presence"].as_f64().unwrap_or(1.0);
 
         let provider: Box<dyn Provider> = match provider {
-            "auto-increment" => Box::new(AutoIncrementProvider::new_from_yaml(&parsed_yaml)),
-            "email" => Box::new(EmailProvider::new_from_yaml(&parsed_yaml)),
+            "auto-increment" => Box::new(AutoIncrementProvider::new_from_yaml(&column)),
+            "email" => Box::new(EmailProvider::new_from_yaml(&column)),
             _ => panic!("Unknown provider: {}", provider),
         };
 
-        let column = Column { name: name.to_string(), provider, presence: Some(presence as f32) };
+        let column = Column { name: name.to_string(), provider };
         columns.push(column);
     }
 
