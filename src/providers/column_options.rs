@@ -1,4 +1,4 @@
-use rand::Rng;
+
 use yaml_rust::Yaml;
 
 use log::{info, warn};
@@ -16,7 +16,7 @@ impl ColumnOptions {
             return None
         }
 
-        let rnd: f64 = rand::thread_rng().gen_range(0.0..1.0);
+        let rnd: f64 = fastrand::f64();
         if rnd > self.presence {
             return None;
         }
