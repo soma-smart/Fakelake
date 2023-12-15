@@ -8,6 +8,12 @@ columns:
     provider: email
     domain: soma-smart.com
 
+  - name: created
+    provider: date
+    format: "%Y-%m-%d"
+    after: 2000-02-15
+    before: 2020-07-17
+
 info:
   output_name: all_options
   output_format: parquet

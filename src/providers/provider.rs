@@ -6,6 +6,7 @@ use yaml_rust::Yaml;
 pub enum Value {
     Int32(i32),
     String(String),
+    Date(i32),
 }
 
 pub trait Provider {

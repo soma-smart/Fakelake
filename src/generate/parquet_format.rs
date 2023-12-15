@@ -1,4 +1,4 @@
-use arrow_array::{ArrayRef, Int32Array, RecordBatch, StringArray};
+use arrow_array::{ArrayRef, Int32Array, RecordBatch, StringArray, Date32Array};
 use arrow_schema::{Field, DataType, Schema};
 use log::debug;
 use parquet::{arrow::ArrowWriter, basic::Compression, file::properties::WriterProperties};
@@ -82,6 +82,17 @@ impl OutputFormat for OutputParquet {
                             }
                         }
                         Arc::new(StringArray::from(vec)) as ArrayRef
+                    },
+                    DataType::Date32 => {
+                        let mut vec: Vec<Option<i32>> = Vec::new();
+                        for i in 0..rows_to_generate {
+                            match column.provider.value(i) {
+                                Some(provider::Value::Date(value)) => vec.push(Some(value)),
+                                None => vec.push(None),
+                                _ => panic!("Wrong provider type"),
+                            }
+                        }
+                        Arc::new(Date32Array::from(vec)) as ArrayRef
                     },
                     _ => panic!("Unknown parquet type: {:?}", parquet_type),
                 };

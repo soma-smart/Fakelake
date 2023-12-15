@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use yaml_rust::YamlLoader;
 
 use crate::errors::FakeLakeError;
+use crate::providers::date::date::DateProvider;
 use crate::providers::integer::auto_increment::AutoIncrementProvider;
 use crate::providers::provider::Provider;
 use crate::providers::string::email::EmailProvider;
@@ -49,6 +50,7 @@ pub fn get_config_from_path(path: &PathBuf) -> Result<Config, FakeLakeError> {
         let provider: Box<dyn Provider> = match provider {
             "auto-increment" => Box::new(AutoIncrementProvider::new_from_yaml(&column)),
             "email" => Box::new(EmailProvider::new_from_yaml(&column)),
+            "date" => Box::new(DateProvider::new_from_yaml(&column)),
             _ => panic!("Unknown provider: {}", provider),
         };
 
