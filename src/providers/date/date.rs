@@ -4,33 +4,25 @@ use chrono::{NaiveDate, Datelike};
 use log::{ info, warn };
 
 use crate::providers::provider::{Provider, Value};
-use crate::providers::column_options::ColumnOptions;
 
 const DEFAULT_FORMAT: &str = "%Y-%m-%d";
 const DEFAULT_AFTER: &str = "1980-01-01";
 const DEFAULT_BEFORE: &str = "2000-01-01";
 
 pub struct DateProvider {
-    pub options: Option<ColumnOptions>,
     pub format: String,
     pub after: i32,
     pub before: i32,
 }
 
 impl Provider for DateProvider {
-    fn value(&self, index: u32) -> Option<Value> {
-        let calculated_value = Value::Date(fastrand::i32(self.after..self.before));
-        return match &self.options {
-            Some(value) => value.alter_value(calculated_value, index),
-            _ => Some(calculated_value),
-        }
+    fn value(&self, _: u32) -> Value {
+        return Value::Date(fastrand::i32(self.after..self.before));
     }
     fn get_parquet_type(&self) -> DataType {
         return DataType::Date32;
     }
     fn new_from_yaml(column: &Yaml) -> DateProvider {
-        let column_options = ColumnOptions::new_from_yaml(column);
-
         let format_option = match column["format"].as_str() {
             Some(format) => format,
             None => {
@@ -91,7 +83,6 @@ impl Provider for DateProvider {
         let before_option_in_days = before_option.num_days_from_ce() - epoch.num_days_from_ce();
 
         return DateProvider {
-            options: column_options,
             format: format_option.to_string(),
             after: after_option_in_days,
             before: before_option_in_days
