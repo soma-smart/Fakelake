@@ -1,4 +1,4 @@
-use arrow_array::{ArrayRef, Int32Array, RecordBatch, StringArray};
+use arrow_array::{ArrayRef, Int32Array, RecordBatch, StringArray, Date32Array};
 use arrow_schema::{Field, DataType, Schema};
 use log::debug;
 use parquet::{arrow::ArrowWriter, basic::Compression, file::properties::WriterProperties};
@@ -64,10 +64,13 @@ impl OutputFormat for OutputParquet {
                     DataType::Int32 => {
                         let mut vec: Vec<Option<i32>> = Vec::new();
                         for i in 0..rows_to_generate {
-                            match column.provider.value(i) {
-                                Some(provider::Value::Int32(value)) => vec.push(Some(value)),
-                                None => vec.push(None),
-                                _ => panic!("Wrong provider type"),
+                            if column.is_next_present() {
+                                match column.provider.value(i) {
+                                    provider::Value::Int32(value) => vec.push(Some(value)),
+                                    _ => panic!("Wrong provider type"),
+                                }
+                            } else {
+                                vec.push(None)
                             }
                         }
                         Arc::new(Int32Array::from(vec)) as ArrayRef
@@ -75,13 +78,30 @@ impl OutputFormat for OutputParquet {
                     DataType::Utf8 => {
                         let mut vec: Vec<Option<String>> = Vec::new();
                         for i in 0..rows_to_generate {
-                            match column.provider.value(i) {
-                                Some(provider::Value::String(value)) => vec.push(Some(value)),
-                                None => vec.push(None),
-                                _ => panic!("Wrong provider type"),
+                            if column.is_next_present() {
+                                match column.provider.value(i) {
+                                    provider::Value::String(value) => vec.push(Some(value)),
+                                    _ => panic!("Wrong provider type"),
+                                }
+                            } else {
+                                vec.push(None)
                             }
                         }
                         Arc::new(StringArray::from(vec)) as ArrayRef
+                    },
+                    DataType::Date32 => {
+                        let mut vec: Vec<Option<i32>> = Vec::new();
+                        for i in 0..rows_to_generate {
+                            if column.is_next_present() {
+                                match column.provider.value(i) {
+                                    provider::Value::Date(value) => vec.push(Some(value)),
+                                    _ => panic!("Wrong provider type"),
+                                }
+                            } else {
+                                vec.push(None)
+                            }
+                        }
+                        Arc::new(Date32Array::from(vec)) as ArrayRef
                     },
                     _ => panic!("Unknown parquet type: {:?}", parquet_type),
                 };
@@ -102,7 +122,7 @@ fn get_schema_from_config(config: &Config) -> Schema {
     for column in &config.columns {
         // let parquet_type = provider::provider_conf_to_provider(&column.provider).get_parquet_type();
         let parquet_type = column.provider.get_parquet_type();
-        fields.push(Field::new(&column.name, parquet_type, true));
+        fields.push(Field::new(&column.name, parquet_type, column.can_be_null()));
     }
 
     Schema::new(fields)

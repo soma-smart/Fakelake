@@ -5,6 +5,8 @@ use std::path::PathBuf;
 use yaml_rust::YamlLoader;
 
 use crate::errors::FakeLakeError;
+use crate::providers::{ presence_option, presence_option::PresenceTrait };
+use crate::providers::date::date::DateProvider;
 use crate::providers::integer::auto_increment::AutoIncrementProvider;
 use crate::providers::provider::Provider;
 use crate::providers::string::email::EmailProvider;
@@ -19,6 +21,16 @@ pub struct Config {
 pub struct Column {
     pub name: String,
     pub provider: Box<dyn Provider>,
+    pub presence: Box<dyn PresenceTrait>,
+}
+
+impl Column {
+    pub fn is_next_present(&self) -> bool {
+        return self.presence.is_next_present()
+    }
+    pub fn can_be_null(&self) -> bool {
+        return self.presence.can_be_null()
+    }
 }
 
 #[derive(Debug)]
@@ -29,7 +41,6 @@ pub struct Info {
     pub output_format: Option<String>,
     pub rows: Option<u32>,
 }
-
 
 pub fn get_config_from_path(path: &PathBuf) -> Result<Config, FakeLakeError> {
     let file_content = std::fs::read_to_string(&path)?;
@@ -45,14 +56,16 @@ pub fn get_config_from_path(path: &PathBuf) -> Result<Config, FakeLakeError> {
     for column in parsed_yaml[0]["columns"].as_vec().unwrap() {
         let name = column["name"].as_str().unwrap();
         let provider = column["provider"].as_str().unwrap();
+        let presence = presence_option::new_from_yaml(column);
 
         let provider: Box<dyn Provider> = match provider {
             "auto-increment" => Box::new(AutoIncrementProvider::new_from_yaml(&column)),
             "email" => Box::new(EmailProvider::new_from_yaml(&column)),
+            "date" => Box::new(DateProvider::new_from_yaml(&column)),
             _ => panic!("Unknown provider: {}", provider),
         };
 
-        let column = Column { name: name.to_string(), provider };
+        let column = Column { name: name.to_string(), provider, presence };
         columns.push(column);
     }
 
