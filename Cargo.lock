@@ -415,6 +415,7 @@ dependencies = [
  "fastrand",
  "log",
  "parquet",
+ "regex",
  "yaml-rust",
 ]
 

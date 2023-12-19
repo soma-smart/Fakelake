@@ -17,3 +17,23 @@ impl Provider for StringProvider {
         return StringProvider;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::providers::provider::{ Value, Provider };
+    use super::StringProvider;
+    
+    // Validate value calculation
+    #[test]
+    fn given_index_x_should_return_random_string_of_length_10() {
+        let provider = StringProvider;
+
+        let values_to_check = [0, 4, 50];
+        for value in values_to_check {
+            match provider.value(value) {
+                Value::String(value) => assert_eq!(value.len(), 10),
+                _ => panic!("Wrong type")
+            }
+        }
+    }
+}
