@@ -24,3 +24,68 @@ impl Provider for AutoIncrementProvider {
         };
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::providers::provider::{ Value, Provider };
+    use super::AutoIncrementProvider;
+
+    use yaml_rust::YamlLoader;
+
+    fn generate_provider(start: Option<String>) -> AutoIncrementProvider {
+        let yaml_str = match start {
+            Some(value) => format!("name: id{}start: {}", "\n", value),
+            None => format!("name: id"),
+        };
+        let yaml = YamlLoader::load_from_str(yaml_str.as_str()).unwrap();
+        AutoIncrementProvider::new_from_yaml(&yaml[0])
+    }
+
+    // Validate YAML file
+    #[test]
+    fn given_no_start_in_yaml_should_give_start_0() {
+        let provider = generate_provider(None);
+        assert_eq!(provider.start, 0);
+    }
+
+    #[test]
+    fn given_string_for_start_in_yaml_should_give_start_0() {
+        let provider = generate_provider(Some("BadValue".to_string()));
+        assert_eq!(provider.start, 0);
+    }
+    
+    #[test]
+    fn given_x_for_start_in_yaml_should_give_start_x() {
+        let values_to_check = [-14, 0, 4, 50];
+        for value in values_to_check {
+            let provider = generate_provider(Some(value.to_string()));
+            assert_eq!(provider.start, value);
+        }
+    }
+    
+    // Validate value calculation
+    #[test]
+    fn given_start_0_and_index_x_should_return_x() {
+        let provider = AutoIncrementProvider { start: 0 };
+
+        let values_to_check = [0, 4, 50];
+        for value in values_to_check {
+            let calculated = provider.value(value);
+            assert_eq!(calculated, Value::Int32(value as i32));
+        }
+    }
+
+    #[test]
+    fn given_start_x_and_index_y_should_return_x_plus_y() {
+        let start_to_check = [-14, 12, 17, 23];
+        let values_to_check = [0, 4, 50];
+
+        for start in start_to_check {
+            let provider = AutoIncrementProvider { start };
+            for value in values_to_check {
+                let calculated = provider.value(value);
+                assert_eq!(calculated, Value::Int32(start + value as i32));
+            }
+        }
+    }
+}

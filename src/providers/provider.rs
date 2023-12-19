@@ -3,6 +3,7 @@ use core::fmt;
 use arrow_schema::DataType;
 use yaml_rust::Yaml;
 
+#[derive(PartialEq, fmt::Debug)]
 pub enum Value {
     Int32(i32),
     String(String),
