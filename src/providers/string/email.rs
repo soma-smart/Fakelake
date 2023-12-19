@@ -1,9 +1,8 @@
 use arrow_schema::DataType;
 use yaml_rust::Yaml;
 
-use std::iter::repeat_with;
-
 use crate::providers::provider::{Provider, Value};
+use super::utils::random_characters;
 
 const DEFAULT_DOMAIN: &str = "example.com";
 
@@ -15,7 +14,7 @@ impl Provider for EmailProvider {
     fn value(&self, _: u32) -> Value {
         // return a random email address
         // generate a random string of length 10 (subject) + @ + random domain
-        let subject: String = repeat_with(fastrand::alphanumeric).take(10).collect();
+        let subject: String = random_characters(10);
         return Value::String(format!("{}@{}", subject, self.domain));
     }
     fn get_parquet_type(&self) -> DataType {
