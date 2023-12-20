@@ -5,11 +5,11 @@ use std::path::PathBuf;
 use yaml_rust::YamlLoader;
 
 use crate::errors::FakeLakeError;
-use crate::providers::{ presence_option, presence_option::PresenceTrait };
-use crate::providers::date::date::DateProvider;
 use crate::providers::integer::auto_increment::AutoIncrementProvider;
+use crate::providers::string::{ email::EmailProvider, string::StringProvider };
+use crate::providers::date::date::DateProvider;
+use crate::providers::{ presence_option, presence_option::PresenceTrait };
 use crate::providers::provider::Provider;
-use crate::providers::string::email::EmailProvider;
 
 #[derive(Debug)]
 pub struct Config {
@@ -62,6 +62,7 @@ pub fn get_config_from_path(path: &PathBuf) -> Result<Config, FakeLakeError> {
             "auto-increment" => Box::new(AutoIncrementProvider::new_from_yaml(&column)),
             "email" => Box::new(EmailProvider::new_from_yaml(&column)),
             "date" => Box::new(DateProvider::new_from_yaml(&column)),
+            "string" => Box::new(StringProvider::new_from_yaml(&column)),
             _ => panic!("Unknown provider: {}", provider),
         };
 

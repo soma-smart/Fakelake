@@ -13,6 +13,9 @@ columns:
     format: "%Y-%m-%d"
     after: 2000-02-15
     before: 2020-07-17
+  
+  - name: name
+    provider: string
 
 info:
   output_name: all_options
