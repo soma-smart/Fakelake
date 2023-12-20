@@ -32,7 +32,7 @@ impl Provider for EmailProvider {
 #[cfg(test)]
 mod tests {
     use crate::providers::provider::{ Value, Provider };
-    use super::EmailProvider;
+    use super::{ DEFAULT_DOMAIN, EmailProvider };
 
     use yaml_rust::YamlLoader;
     use regex::Regex;
@@ -48,9 +48,9 @@ mod tests {
 
     // Validate YAML file
     #[test]
-    fn given_no_domain_in_yaml_should_give_domain_examplecom() {
+    fn given_no_domain_in_yaml_should_give_domain_default() {
         let provider: EmailProvider = generate_provider(None);
-        assert_eq!(provider.domain, "example.com");
+        assert_eq!(provider.domain, DEFAULT_DOMAIN);
     }
     
     #[test]

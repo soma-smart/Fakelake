@@ -28,7 +28,7 @@ impl Provider for AutoIncrementProvider {
 #[cfg(test)]
 mod tests {
     use crate::providers::provider::{ Value, Provider };
-    use super::AutoIncrementProvider;
+    use super::{ DEFAULT_START, AutoIncrementProvider };
 
     use yaml_rust::YamlLoader;
 
@@ -43,15 +43,15 @@ mod tests {
 
     // Validate YAML file
     #[test]
-    fn given_no_start_in_yaml_should_give_start_0() {
+    fn given_no_start_in_yaml_should_give_default() {
         let provider = generate_provider(None);
-        assert_eq!(provider.start, 0);
+        assert_eq!(provider.start, DEFAULT_START as i32);
     }
 
     #[test]
-    fn given_string_for_start_in_yaml_should_give_start_0() {
+    fn given_badvalue_for_start_in_yaml_should_give_default() {
         let provider = generate_provider(Some("BadValue".to_string()));
-        assert_eq!(provider.start, 0);
+        assert_eq!(provider.start, DEFAULT_START as i32);
     }
     
     #[test]
