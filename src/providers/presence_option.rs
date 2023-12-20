@@ -8,14 +8,14 @@ pub trait PresenceTrait {
     fn can_be_null(&self) -> bool;
 }
 
-// Implement Debug for all types that implement Provider
+// Implement Debug for all types that implement PresenceTrait
 impl fmt::Debug for dyn PresenceTrait {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Provider {{ }}")
     }
 }
 
-pub struct SometimesPresent {
+struct SometimesPresent {
     pub presence: f64,
 }
 
@@ -33,7 +33,7 @@ impl PresenceTrait for SometimesPresent {
     }
 }
 
-pub struct AlwaysPresent;
+struct AlwaysPresent;
 impl PresenceTrait for AlwaysPresent {
     fn is_next_present(&self) -> bool {
         true
@@ -43,7 +43,7 @@ impl PresenceTrait for AlwaysPresent {
     }
 }
 
-pub struct NeverPresent;
+struct NeverPresent;
 impl PresenceTrait for NeverPresent {
     fn is_next_present(&self) -> bool {
         false
@@ -76,4 +76,150 @@ pub fn new_from_yaml(column: &Yaml) -> Box<dyn PresenceTrait> {
         Some(value) => Box::new(SometimesPresent{ presence: value }),
         None => Box::new(AlwaysPresent{}),
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use yaml_rust::YamlLoader;
+
+    fn generate_presence(presence: Option<&str>) -> Box<dyn PresenceTrait> {
+        let yaml_str = match presence {
+            Some(value) => format!("name: id{}presence: {}", "\n", value),
+            None => format!("name: id"),
+        };
+        let yaml = YamlLoader::load_from_str(yaml_str.as_str()).unwrap();
+        new_from_yaml(&yaml[0])
+    }
+
+    fn check_always_present(presence: Box<dyn PresenceTrait>) -> bool {
+        !presence.can_be_null()
+    }
+
+    fn check_never_present(presence: Box<dyn PresenceTrait>) -> bool {
+        if !presence.can_be_null() {
+            return false
+        }
+
+        for _ in 0..10 {
+            if presence.is_next_present() {
+                return false
+            }
+        }
+        return true
+    }
+
+    fn check_sometimes_present(presence: Box<dyn PresenceTrait>) -> bool {
+        if !presence.can_be_null() {
+            return false
+        }
+
+        let first_run = presence.is_next_present();
+        for _ in 0..100 {
+            if presence.is_next_present() != first_run {
+                return true
+            }
+        }
+        return false
+    }
+
+    // Validate YAML file
+    #[test]
+    fn given_no_presence_should_give_always_present() {
+        let presence = generate_presence(None);
+        assert!(check_always_present(presence));
+    }
+
+    #[test]
+    fn given_0_int_presence_should_give_never_present() {
+        let presence = generate_presence(Some("0"));
+        assert!(check_never_present(presence));
+    }
+    #[test]
+    fn given_0_float_presence_should_give_never_present() {
+        let presence = generate_presence(Some("0.0"));
+        assert!(check_never_present(presence));
+    }
+
+    #[test]
+    fn given_less_than_0_int_presence_should_give_never_present() {
+        let presence = generate_presence(Some("-5"));
+        assert!(check_never_present(presence));
+    }
+    #[test]
+    fn given_less_than_0_float_presence_should_give_never_present() {
+        let presence = generate_presence(Some("-5.2"));
+        assert!(check_never_present(presence));
+    }
+
+    #[test]
+    fn given_bad_value_presence_should_give_always_present() {
+        let presence = generate_presence(Some("BadValue"));
+        assert!(check_always_present(presence));
+    }
+
+    #[test]
+    fn given_1_int_presence_should_give_always_present() {
+        let presence = generate_presence(Some("1"));
+        assert!(check_always_present(presence));
+    }
+    #[test]
+    fn given_1_float_presence_should_give_always_present() {
+        let presence = generate_presence(Some("1.0"));
+        assert!(check_always_present(presence));
+    }
+
+    #[test]
+    fn given_more_than_1_int_presence_should_give_always_present() {
+        let presence = generate_presence(Some("12"));
+        assert!(check_always_present(presence));
+    }
+    #[test]
+    fn given_more_than_1_float_presence_should_give_always_present() {
+        let presence = generate_presence(Some("12.6"));
+        assert!(check_always_present(presence));
+    }
+    
+    #[test]
+    fn given_between_0_and_1_presence_should_give_sometimes_present() {
+        let presence = generate_presence(Some("0.3"));
+        assert!(check_sometimes_present(presence));
+    }
+
+    // Validate presence option
+    #[test]
+    fn given_always_should_return_true() {
+        let presence = AlwaysPresent;
+        assert!(presence.can_be_null() == false);
+        for _ in 1..100 {
+            assert!(presence.is_next_present());
+        }
+    }
+
+    #[test]
+    fn given_never_should_return_false() {
+        let presence = NeverPresent;
+        assert!(presence.can_be_null());
+        for _ in 1..100 {
+            assert!(presence.is_next_present() == false);
+        }
+    }
+
+    #[test]
+    fn given_sometimes_should_return_random() {
+        let presence = SometimesPresent { presence: 0.5 };
+        assert!(presence.can_be_null());
+
+        let mut count_true = 0;
+        let mut count_false = 0;
+        for _ in 1..1000 {
+            match presence.is_next_present() {
+                false => count_false = count_false + 1,
+                true => count_true = count_true + 1
+            };
+        }
+        let diff: i32 = count_true - count_false;
+        assert!(diff.abs() < 50);
+    }
 }
