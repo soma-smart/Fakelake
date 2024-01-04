@@ -34,6 +34,7 @@ mod tests {
     use crate::providers::provider::{ Value, Provider };
     use super::{ DEFAULT_DOMAIN, EmailProvider };
 
+    use arrow_schema::DataType;
     use yaml_rust::YamlLoader;
     use regex::Regex;
 
@@ -44,6 +45,13 @@ mod tests {
         };
         let yaml = YamlLoader::load_from_str(yaml_str.as_str()).unwrap();
         EmailProvider::new_from_yaml(&yaml[0])
+    }
+
+    // Parquet type
+    #[test]
+    fn given_nothing_should_return_parquet_type() {
+        let provider: EmailProvider = generate_provider(None);
+        assert_eq!(provider.get_parquet_type(), DataType::Utf8);
     }
 
     // Validate YAML file

@@ -1,3 +1,10 @@
+# Configs
+.vscode/
+**/__pycache__/
+
+# Generated
 /target
 *.parquet
-**/__pycache__/
+
+# Coverage
+*.profraw

@@ -11,13 +11,22 @@ use crate::providers::provider;
 
 const PARQUET_EXTENSION: &str = ".parquet";
 
+#[derive(Debug, PartialEq)]
 pub struct OutputParquet;
 
 impl OutputFormat for OutputParquet {
-    fn generate_from_config(config: &Config) -> Result<(), FakeLakeError> {
+    fn get_extension(&self) -> &str {
+        return PARQUET_EXTENSION;
+    }
+
+    fn generate_from_config(&self, config: &Config) -> Result<(), FakeLakeError> {
+        if config.columns.len() == 0 {
+            return Err(FakeLakeError::BadYAMLFormat("No columns to generate".to_string()));
+        }
+
         let file_name = match &config.info {
             Some(info) => match &info.output_name {
-                Some(name) => name ,
+                Some(name) => name,
                 None => "output",
             },
             None => "output",

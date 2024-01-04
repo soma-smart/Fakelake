@@ -30,6 +30,7 @@ mod tests {
     use crate::providers::provider::{ Value, Provider };
     use super::{ DEFAULT_START, AutoIncrementProvider };
 
+    use arrow_schema::DataType;
     use yaml_rust::YamlLoader;
 
     fn generate_provider(start: Option<String>) -> AutoIncrementProvider {
@@ -39,6 +40,13 @@ mod tests {
         };
         let yaml = YamlLoader::load_from_str(yaml_str.as_str()).unwrap();
         AutoIncrementProvider::new_from_yaml(&yaml[0])
+    }
+
+    // Parquet type
+    #[test]
+    fn given_nothing_should_return_parquet_type() {
+        let provider: AutoIncrementProvider = generate_provider(None);
+        assert_eq!(provider.get_parquet_type(), DataType::Int32);
     }
 
     // Validate YAML file

@@ -7,6 +7,7 @@ pub enum FakeLakeError {
     IOError(io::Error),
 }
 
+#[cfg(not(tarpaulin_include))]
 impl fmt::Display for FakeLakeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         // For now, use the debug derived version
@@ -14,6 +15,7 @@ impl fmt::Display for FakeLakeError {
     }
 }
 
+#[cfg(not(tarpaulin_include))]
 impl From<io::Error> for FakeLakeError {
     fn from(error: io::Error) -> Self {
         FakeLakeError::IOError(error)

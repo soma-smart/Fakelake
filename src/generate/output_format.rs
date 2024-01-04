@@ -1,6 +1,9 @@
+use std::fmt;
+
 use crate::config::Config;
 use crate::errors::FakeLakeError;
 
 pub trait OutputFormat {
-    fn generate_from_config(config: &Config) -> Result<(), FakeLakeError>;
+    fn get_extension(&self) -> &str;
+    fn generate_from_config(&self, config: &Config) -> Result<(), FakeLakeError>;
 }
