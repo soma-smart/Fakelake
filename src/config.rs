@@ -1,15 +1,10 @@
 /// Config structs used by Fakelake during YAML parsing
 ///
-use std::path::PathBuf;
-
-use yaml_rust::YamlLoader;
+use yaml_rust::{ Yaml, YamlLoader };
 
 use crate::errors::FakeLakeError;
-use crate::providers::integer::auto_increment::AutoIncrementProvider;
-use crate::providers::string::{ email::EmailProvider, string::StringProvider };
-use crate::providers::date::date::DateProvider;
 use crate::providers::{ presence_option, presence_option::PresenceTrait };
-use crate::providers::provider::Provider;
+use crate::providers::provider::{ Provider, ProviderBuilder };
 
 #[derive(Debug)]
 pub struct Config {
@@ -31,6 +26,44 @@ impl Column {
     pub fn can_be_null(&self) -> bool {
         return self.presence.can_be_null()
     }
+    
+    pub fn generate_columns(parsed_yaml: &Vec<Yaml>) -> Result<Vec<Column>, FakeLakeError> {
+        let mut columns = Vec::new();
+
+        let yaml_columns = match parsed_yaml.get(0) {
+            Some(value) => {
+                match value["columns"].as_vec() {
+                    Some(value) => value,
+                    None => return Err(FakeLakeError::BadYAMLFormat("No columns found in the yaml file".to_string())),
+                }
+            },
+            None => return Err(FakeLakeError::BadYAMLFormat("The yaml file is empty".to_string())),
+        };
+
+        // iter over columns
+        for column in yaml_columns {
+            let name = match column["name"].as_str() {
+                Some(value) => value,
+                None => return Err(FakeLakeError::BadYAMLFormat("One column in the yaml as no name specified.".to_string())),
+            };
+            let provider = match column["provider"].as_str() {
+                Some(value) => value,
+                None => return Err(FakeLakeError::BadYAMLFormat("The column {{name}} in the yaml as no provider specified.".to_string())),
+            };
+
+            let presence = presence_option::new_from_yaml(column);
+
+            let provider: Box<dyn Provider> = match ProviderBuilder::get_corresponding_provider(provider, column) {
+                Ok(value) => value,
+                Err(e) => return Err(FakeLakeError::BadYAMLFormat(e.to_string())),
+            };
+
+            let column = Column { name: name.to_string(), provider, presence };
+            columns.push(column);
+        }
+
+        Ok(columns)
+    }
 }
 
 #[derive(Debug)]
@@ -42,56 +75,365 @@ pub struct Info {
     pub rows: Option<u32>,
 }
 
-pub fn get_config_from_path(path: &PathBuf) -> Result<Config, FakeLakeError> {
-    let file_content = std::fs::read_to_string(&path)?;
+impl Info {
+    pub fn parse_info_section(parsed_yaml: &Vec<Yaml>) -> Result<Info, FakeLakeError> {
+        let section_info = match parsed_yaml.get(0) {
+            Some(value) => &value["info"],
+            None => return Err(FakeLakeError::BadYAMLFormat("Yaml file is empty".to_string())),
+        };
+        
+        let output_name = match section_info["output_name"].as_str() {
+            Some(name) => Some(name.to_string()),
+            None => None,
+        };
 
-    let mut columns = Vec::new();
+        let output_format = match section_info["output_format"].as_str() {
+            Some(format) => Some(format.to_string()),
+            None => None,
+        };
 
+        // rows could be i64 or str (i64 with _ separators)
+        let rows = match section_info["rows"].as_i64() {
+            Some(rows) => Some(rows as u32),
+            None => match section_info["rows"].as_str() {
+                Some(rows) => {
+                    match rows.replace("_", "").parse::<u32>() {
+                        Ok(value) => Some(value),
+                        Err(_) => None,
+                    }
+                },
+                None => None,
+            },
+        };
+
+        Ok(Info { output_name, output_format, rows })
+    }
+}
+
+pub fn get_config_from_string(file_content: String) -> Result<Config, FakeLakeError> {
     let parsed_yaml = match YamlLoader::load_from_str(&file_content) {
         Ok(docs) => docs,
         Err(e) => return Err(FakeLakeError::BadYAMLFormat(e.to_string())),
     };
 
-    // iter over columns
-    for column in parsed_yaml[0]["columns"].as_vec().unwrap() {
-        let name = column["name"].as_str().unwrap();
-        let provider = column["provider"].as_str().unwrap();
-        let presence = presence_option::new_from_yaml(column);
-
-        let provider: Box<dyn Provider> = match provider {
-            "auto-increment" => Box::new(AutoIncrementProvider::new_from_yaml(&column)),
-            "email" => Box::new(EmailProvider::new_from_yaml(&column)),
-            "date" => Box::new(DateProvider::new_from_yaml(&column)),
-            "string" => Box::new(StringProvider::new_from_yaml(&column)),
-            _ => panic!("Unknown provider: {}", provider),
-        };
-
-        let column = Column { name: name.to_string(), provider, presence };
-        columns.push(column);
-    }
-
-    // parse info section
-    let section_info = &parsed_yaml[0]["info"];
-    let info = Info {
-        output_name: match section_info["output_name"].as_str() {
-            Some(name) => Some(name.to_string()),
-            None => None,
-        },
-        output_format: match section_info["output_format"].as_str() {
-            Some(format) => Some(format.to_string()),
-            None => None,
-        },
-        // rows could be i64 or str (i64 with _ separators)
-        rows: match section_info["rows"].as_i64() {
-            Some(rows) => Some(rows as u32),
-            None => match section_info["rows"].as_str() {
-                Some(rows) => Some(rows.replace("_", "").parse::<u32>().unwrap()),
-                None => None,
-            },
-        },
+    let columns = match Column::generate_columns(&parsed_yaml) {
+        Ok(value) => value,
+        Err(e) => return Err(FakeLakeError::BadYAMLFormat(e.to_string())),
     };
+
+    let info = Info::parse_info_section(&parsed_yaml).unwrap();
 
     let config = Config { columns, info: Some(info) };
 
     return Ok(config);
+}
+
+#[cfg(test)]
+mod tests {
+    use mockall::*;
+    use mockall::predicate::*;
+    use arrow_schema::DataType;
+    use yaml_rust::Yaml;
+    use std::path::PathBuf;
+
+    use super::*;
+
+    use crate::providers::presence_option::PresenceTrait;
+    use crate::providers::provider::{ Provider, Value };
+
+    mock! {
+        pub TestProvider {}
+
+        impl Provider for TestProvider {
+            fn value(&self, index: u32) -> Value;
+            fn get_parquet_type(&self) -> DataType;
+            fn new_from_yaml(column: &Yaml) -> Self where Self: Sized;
+        }
+    }
+
+    mock! {
+        pub TestPresence {}
+
+        impl PresenceTrait for TestPresence {
+            fn is_next_present(&self) -> bool;
+            fn can_be_null(&self) -> bool;
+        }
+    }
+
+    fn generate_column(provider: Box<dyn Provider>, presence: Box<dyn PresenceTrait>) -> Column {
+        Column { name: "Testing column".to_string(), provider, presence }
+    }
+
+    fn expecting_err<T, E>(res: &Result<T, E>) {
+        match res {
+            Err(_value) => assert!(true),
+            _ => assert!(false),
+        }
+    }
+
+    fn expecting_ok<T, E>(res: &Result<T, E>) {
+        match res {
+            Ok(_) => assert!(true),
+            _ => assert!(false),
+        }
+    }
+
+    // Test Column
+    #[test]
+    fn given_column_should_call_is_next_present() {
+        let mock_provider = Box::new(MockTestProvider::new());
+
+        let mut mock_presence = Box::new(MockTestPresence::new());
+        mock_presence.expect_is_next_present().times(1).return_const(true);
+
+        let column = generate_column(mock_provider, mock_presence);
+        assert_eq!(column.is_next_present(), true);
+    }
+
+    #[test]
+    fn given_column_should_call_can_be_null() {
+        let mock_provider = Box::new(MockTestProvider::new());
+
+        let mut mock_presence = Box::new(MockTestPresence::new());
+        mock_presence.expect_can_be_null().times(1).return_const(true);
+
+        let column = generate_column(mock_provider, mock_presence);
+        assert_eq!(column.can_be_null(), true);
+    }
+
+    fn generate_columns_from_yaml(yaml_str: &str) -> Result<Vec<Column>, FakeLakeError> {
+        let yaml = YamlLoader::load_from_str(yaml_str).unwrap();
+
+        Column::generate_columns(&yaml)
+    }
+
+    // Generate Columns
+    #[test]
+    fn given_empty_config_should_columns_return_err() {
+        let yaml = "";
+        let columns = generate_columns_from_yaml(yaml);
+        expecting_err(&columns);
+    }
+
+    #[test]
+    fn given_no_columns_should_columns_return_err() {
+        let yaml = "something:\n";
+        let columns = generate_columns_from_yaml(yaml);
+        expecting_err(&columns);
+    }
+
+    #[test]
+    fn given_empty_columns_should_columns_return_err() {
+        let yaml = "columns:\n";
+        let columns = generate_columns_from_yaml(yaml);
+        expecting_err(&columns);
+    }
+
+    #[test]
+    fn given_one_column_without_name_should_columns_return_err() {
+        let yaml = "
+        columns:
+            - provider: auto-increment
+        ";
+        let columns = generate_columns_from_yaml(yaml);
+        expecting_err(&columns);
+    }
+
+    #[test]
+    fn given_one_column_without_provider_should_columns_return_err() {
+        let yaml = "
+        columns:
+            - name: id
+        ";
+        let columns = generate_columns_from_yaml(yaml);
+        expecting_err(&columns);
+    }
+    
+    #[test]
+    fn given_unknown_provider_should_columns_return_err() {
+        let yaml = "
+        columns:
+            - name: id
+              provider: not-existing-provider
+        ";
+        let columns = generate_columns_from_yaml(yaml);
+        expecting_err(&columns);
+    }
+
+    #[test]
+    fn given_correct_column_should_columns_return_ok() {
+        let yaml = "
+        columns:
+            - name: id
+              provider: auto-increment
+        ";
+        let columns = generate_columns_from_yaml(yaml);
+        expecting_ok(&columns);
+    }
+
+    fn generate_info_from_yaml(yaml_str: &str) -> Result<Info, FakeLakeError> {
+        let yaml = YamlLoader::load_from_str(yaml_str).unwrap();
+
+        Info::parse_info_section(&yaml)
+    }
+
+    // Generate config
+    #[test]
+    fn given_empty_yaml_should_config_return_err() {
+        let yaml = "";
+        let info = generate_info_from_yaml(yaml);
+        expecting_err(&info);
+    }
+
+    #[test]
+    fn given_no_info_should_config_return_ok() {
+        let yaml = "something:\n";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+    }
+
+    #[test]
+    fn given_empty_info_should_config_return_ok() {
+        let yaml = "info: something\n";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+    }
+
+    #[test]
+    fn given_no_parameters_should_config_return_ok() {
+        let yaml = "
+        info:
+            a: something
+        ";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+        let info = &info.unwrap();
+        assert_eq!(info.output_name, None);
+        assert_eq!(info.output_format, None);
+        assert_eq!(info.rows, None);
+    }
+
+    #[test]
+    fn given_output_name_should_config_return_in_output_name() {
+        let yaml = "
+        info:
+            output_name: something
+        ";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+        let info = &info.unwrap();
+        assert_eq!(info.output_name, Some("something".to_string()));
+        assert_eq!(info.output_format, None);
+        assert_eq!(info.rows, None);
+    }
+
+    #[test]
+    fn given_output_format_should_config_return_in_output_format() {
+        let yaml = "
+        info:
+            output_format: parquet
+        ";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+        let info = &info.unwrap();
+        assert_eq!(info.output_name, None);
+        assert_eq!(info.output_format, Some("parquet".to_string()));
+        assert_eq!(info.rows, None);
+    }
+
+    #[test]
+    fn given_rows_int_should_config_return_in_rows() {
+        let yaml = "
+        info:
+            rows: 1000000
+        ";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+        let info = &info.unwrap();
+        assert_eq!(info.output_name, None);
+        assert_eq!(info.output_format, None);
+        assert_eq!(info.rows, Some(1000000));
+    }
+
+    #[test]
+    fn given_rows_str_should_config_return_in_rows() {
+        let yaml = "
+        info:
+            rows: 1_000_000
+        ";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+        let info = &info.unwrap();
+        assert_eq!(info.output_name, None);
+        assert_eq!(info.output_format, None);
+        assert_eq!(info.rows, Some(1000000));
+    }
+
+    #[test]
+    fn given_rows_bad_str_should_config_return_none_rows() {
+        let yaml = "
+        info:
+            rows: not_an_int
+        ";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+        let info = &info.unwrap();
+        assert_eq!(info.output_name, None);
+        assert_eq!(info.output_format, None);
+        assert_eq!(info.rows, None);
+    }
+
+    // get_config_from_string
+    #[test]
+    fn given_not_yaml_should_return_err() {
+        let file_content = "{{::,..,@#|\"".to_string();
+        let res = get_config_from_string(file_content);
+        expecting_err(&res);
+    }
+
+    #[test]
+    fn given_empty_string_should_return_err() {
+        let file_content = "".to_string();
+        let res = get_config_from_string(file_content);
+        expecting_err(&res);
+    }
+
+    #[test]
+    fn given_only_columns_should_return_ok() {
+        let file_content = "
+        columns:
+            - name: id
+              provider: auto-increment
+        ".to_string();
+        let res = get_config_from_string(file_content);
+        expecting_ok(&res);
+    }
+
+    #[test]
+    fn given_only_info_should_return_err() {
+        let file_content = "
+        info:
+            output_name: something
+            output_format: parquet
+            rows: 1000000        
+        ".to_string();
+        let res = get_config_from_string(file_content);
+        expecting_err(&res);
+    }
+
+    #[test]
+    fn given_everything_should_return_ok() {
+        let file_content = "
+        columns:
+            - name: id
+              provider: auto-increment
+
+        info:
+            output_name: something
+            output_format: parquet
+            rows: 1000000    
+        ".to_string();
+        let res = get_config_from_string(file_content);
+        expecting_ok(&res);
+    }
 }

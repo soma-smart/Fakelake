@@ -65,21 +65,12 @@ impl Provider for DateProvider {
             (_, _) => {
                 warn!("Error while applying the format ({}) to after ({}) and before ({}) parameters. Default value used.", format_option, after_parameter, before_parameter);
                 format_option = DEFAULT_FORMAT;
-                after_option = match NaiveDate::parse_from_str(DEFAULT_AFTER, DEFAULT_FORMAT) {
-                    Ok(after) => after,
-                    _ => panic!("Issue with default format and default after date parsing.")
-                };
-                before_option = match NaiveDate::parse_from_str(DEFAULT_BEFORE, DEFAULT_FORMAT) {
-                    Ok(before) => before,
-                    _ => panic!("Issue with default format and default before date parsing.")
-                };
+                after_option = NaiveDate::parse_from_str(DEFAULT_AFTER, DEFAULT_FORMAT).unwrap();
+                before_option = NaiveDate::parse_from_str(DEFAULT_BEFORE, DEFAULT_FORMAT).unwrap();
             }
         }
 
-        let epoch = match NaiveDate::parse_from_str("1970-01-01", "%Y-%m-%d") {
-            Ok(epoch) => epoch,
-            Err(e) => panic!("Issue with epoch calculation: {}", e)
-        };
+        let epoch = NaiveDate::parse_from_str("1970-01-01", "%Y-%m-%d").unwrap();
         let after_option_in_days = after_option.num_days_from_ce() - epoch.num_days_from_ce();
         let before_option_in_days = before_option.num_days_from_ce() - epoch.num_days_from_ce();
 
@@ -96,6 +87,7 @@ mod tests {
     use crate::providers::provider::{ Value, Provider };
     use super::{ DEFAULT_FORMAT, DEFAULT_AFTER, DEFAULT_BEFORE, DateProvider };
 
+    use arrow_schema::DataType;
     use chrono::{ NaiveDate, Datelike };
     use yaml_rust::YamlLoader;
 
@@ -131,6 +123,13 @@ mod tests {
             Ok(value) => value.num_days_from_ce() - get_epoch().num_days_from_ce(),
             Err(_) => panic!("Should not happen as it is a tested environment"),
         }
+    }
+
+    // Parquet type
+    #[test]
+    fn given_nothing_should_return_parquet_type() {
+        let provider: DateProvider = generate_provider(None, None, None);
+        assert_eq!(provider.get_parquet_type(), DataType::Date32);
     }
     
     // Validate YAML file

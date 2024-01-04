@@ -22,6 +22,30 @@ impl Provider for StringProvider {
 mod tests {
     use crate::providers::provider::{ Value, Provider };
     use super::StringProvider;
+
+    use arrow_schema::DataType;
+    use yaml_rust::YamlLoader;
+
+    fn generate_provider() -> StringProvider {
+        let yaml_str = format!("name: id");
+
+        let yaml = YamlLoader::load_from_str(yaml_str.as_str()).unwrap();
+        StringProvider::new_from_yaml(&yaml[0])
+    }
+
+    // Parquet type
+    #[test]
+    fn given_nothing_should_return_parquet_type() {
+        let provider: StringProvider = StringProvider;
+        assert_eq!(provider.get_parquet_type(), DataType::Utf8);
+    }
+
+    // Validate YAML file
+    #[test]
+    fn given_no_config_should_return_default() {
+        let _: StringProvider = generate_provider();
+        assert!(true);
+    }
     
     // Validate value calculation
     #[test]

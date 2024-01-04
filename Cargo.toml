@@ -17,4 +17,6 @@ parquet = "49.0.0"
 yaml-rust = "0.4"
 
 [dev-dependencies]
+cargo-tarpaulin = "0.27.2"
+mockall = "0.12.1"
 regex = "1.5"
