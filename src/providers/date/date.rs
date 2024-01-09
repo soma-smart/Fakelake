@@ -9,6 +9,7 @@ const DEFAULT_FORMAT: &str = "%Y-%m-%d";
 const DEFAULT_AFTER: &str = "1980-01-01";
 const DEFAULT_BEFORE: &str = "2000-01-01";
 
+#[derive(Clone)]
 pub struct DateProvider {
     pub format: String,
     pub after: i32,

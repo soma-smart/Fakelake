@@ -19,6 +19,16 @@ pub struct Column {
     pub presence: Box<dyn PresenceTrait>,
 }
 
+impl Clone for Column {
+    fn clone(&self) -> Self {
+        Column {
+            name: self.name.clone(),
+            provider: self.provider.clone_box(),
+            presence: self.presence.clone_box(),
+        }
+    }
+}
+
 impl Column {
     pub fn is_next_present(&self) -> bool {
         return self.presence.is_next_present()
@@ -134,15 +144,20 @@ mod tests {
     use mockall::predicate::*;
     use arrow_schema::DataType;
     use yaml_rust::Yaml;
-    use std::path::PathBuf;
 
     use super::*;
 
     use crate::providers::presence_option::PresenceTrait;
     use crate::providers::provider::{ Provider, Value };
 
+    #[derive(Clone)]
+    struct TestProvider;
     mock! {
         pub TestProvider {}
+
+        impl Clone for TestProvider {
+            fn clone(&self) -> Self;
+        }
 
         impl Provider for TestProvider {
             fn value(&self, index: u32) -> Value;
@@ -151,8 +166,14 @@ mod tests {
         }
     }
 
+    #[derive(Clone)]
+    struct TestPresence;
     mock! {
         pub TestPresence {}
+
+        impl Clone for TestPresence {
+            fn clone(&self) -> Self;
+        }
 
         impl PresenceTrait for TestPresence {
             fn is_next_present(&self) -> bool;

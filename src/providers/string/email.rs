@@ -6,6 +6,7 @@ use super::utils::random_characters;
 
 const DEFAULT_DOMAIN: &str = "example.com";
 
+#[derive(Clone)]
 pub struct EmailProvider {
     pub domain: String,
 }

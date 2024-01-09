@@ -1,5 +1,3 @@
-use std::fmt;
-
 use crate::config::Config;
 use crate::errors::FakeLakeError;
 

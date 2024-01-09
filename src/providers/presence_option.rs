@@ -3,7 +3,20 @@ use yaml_rust::Yaml;
 
 use log::{info, warn};
 
-pub trait PresenceTrait {
+pub trait ClonePresence {
+    fn clone_box(&self) -> Box<dyn PresenceTrait>;
+}
+
+impl<T> ClonePresence for T
+where
+    T: 'static + PresenceTrait + Clone,
+{
+    fn clone_box(&self) -> Box<dyn PresenceTrait> {
+        Box::new(self.clone())
+    }
+}
+
+pub trait PresenceTrait: ClonePresence + Send + Sync {
     fn is_next_present(&self) -> bool;
     fn can_be_null(&self) -> bool;
 }
@@ -16,6 +29,7 @@ impl fmt::Debug for dyn PresenceTrait {
     }
 }
 
+#[derive(Clone)]
 struct SometimesPresent {
     pub presence: f64,
 }
@@ -34,6 +48,7 @@ impl PresenceTrait for SometimesPresent {
     }
 }
 
+#[derive(Clone)]
 struct AlwaysPresent;
 impl PresenceTrait for AlwaysPresent {
     fn is_next_present(&self) -> bool {
@@ -44,6 +59,7 @@ impl PresenceTrait for AlwaysPresent {
     }
 }
 
+#[derive(Clone)]
 struct NeverPresent;
 impl PresenceTrait for NeverPresent {
     fn is_next_present(&self) -> bool {

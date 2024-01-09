@@ -22,7 +22,7 @@ pub fn generate_from_paths(paths_to_config: Vec<PathBuf>) -> Result<(), FakeLake
     Ok(())
 }
 
-fn generate_from_string(path: &PathBuf, file_content: String) -> Result<(), FakeLakeError> {
+fn generate_from_string(_: &PathBuf, file_content: String) -> Result<(), FakeLakeError> {
     let config = config::get_config_from_string(file_content)?;
     debug!("Parsed YAML config: {:?}", config);
     generate_from_config(config)
@@ -60,13 +60,6 @@ mod tests {
 
     use super::*;
     use crate::config::{ Config, Info };
-
-    fn expecting_err<T, E>(res: &Result<T, E>) {
-        match res {
-            Err(_value) => assert!(true),
-            _ => assert!(false),
-        }
-    }
 
     fn expecting_ok<T, E>(res: &Result<T, E>) {
         match res {
@@ -114,7 +107,7 @@ mod tests {
     // Wrong Format
     #[test]
     fn given_nothing_should_wrong_format_call_parquet_generation() {
-        let config = Config { columns: Vec::new(), info: None };
+        let _ = Config { columns: Vec::new(), info: None };
 
         let output = wrong_format();
         assert_eq!(output.get_extension(), OutputParquet.get_extension());
