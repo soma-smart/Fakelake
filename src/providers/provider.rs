@@ -16,7 +16,20 @@ pub enum Value {
     Date(i32),
 }
 
-pub trait Provider {
+pub trait CloneProvider {
+    fn clone_box(&self) -> Box<dyn Provider>;
+}
+
+impl<T> CloneProvider for T
+where
+    T: 'static + Provider + Clone,
+{
+    fn clone_box(&self) -> Box<dyn Provider> {
+        Box::new(self.clone())
+    }
+}
+
+pub trait Provider: CloneProvider + Send + Sync {
     fn value(&self, index: u32) -> Value;
     fn get_parquet_type(&self) -> DataType;
     fn new_from_yaml(column: &Yaml) -> Self where Self: Sized;

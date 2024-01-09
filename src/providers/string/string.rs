@@ -4,6 +4,7 @@ use yaml_rust::Yaml;
 use crate::providers::provider::{Provider, Value};
 use super::utils::random_characters;
 
+#[derive(Clone)]
 pub struct StringProvider;
 
 impl Provider for StringProvider {

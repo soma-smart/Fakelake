@@ -5,6 +5,7 @@ use crate::providers::provider::{Provider, Value};
 
 const DEFAULT_START: i64 = 0;
 
+#[derive(Clone)]
 pub struct AutoIncrementProvider {
     pub start: i32,
 }

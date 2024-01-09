@@ -2,7 +2,8 @@ use arrow_array::{ArrayRef, Int32Array, RecordBatch, StringArray, Date32Array};
 use arrow_schema::{Field, DataType, Schema};
 use log::debug;
 use parquet::{arrow::ArrowWriter, basic::Compression, file::properties::WriterProperties};
-use std::sync::Arc;
+use std::sync::{ Arc, Mutex };
+use rayon::prelude::*;
 
 use crate::config::Config;
 use crate::errors::FakeLakeError;
@@ -48,12 +49,12 @@ impl OutputFormat for OutputParquet {
             .set_compression(Compression::SNAPPY)
             .build();
 
-        let batch_size = 8192;
+        let batch_size = 8192 * 8;
         // ceil division
         let iterations = (rows as f64 / batch_size as f64).ceil() as u32;
     
         let file = std::fs::File::create(format!("{}{}", file_name, PARQUET_EXTENSION)).unwrap();
-        let mut writer = ArrowWriter::try_new(file, Arc::new(schema), Some(props)).unwrap();
+        let mut writer = ArrowWriter::try_new(file, Arc::new(schema.clone()), Some(props)).unwrap();
     
         for i in 0..iterations {
             debug!("Generating batch {} of {}...", i, iterations);
@@ -62,11 +63,13 @@ impl OutputFormat for OutputParquet {
             } else {
                 batch_size
             };
-    
-            let mut schema_cols = Vec::new();
-    
-            for column in &config.columns {
-    
+
+            let schema_cols: Mutex<Vec<(String, ArrayRef)>> = Mutex::new(Vec::new());
+            config.columns.clone().into_iter().for_each(|column| {
+                schema_cols.lock().unwrap().push((column.name, Arc::new(Int32Array::from(vec![0])) as ArrayRef));
+            });
+
+            config.columns.clone().into_par_iter().enumerate().for_each(|(index, column)| {
                 let parquet_type = column.provider.get_parquet_type();
     
                 let array = match &parquet_type {
@@ -114,9 +117,10 @@ impl OutputFormat for OutputParquet {
                     },
                     _ => panic!("Unknown parquet type: {:?}", parquet_type),
                 };
-                schema_cols.push((&column.name, array));
-            }
-            let batch = RecordBatch::try_from_iter(schema_cols).unwrap();
+                schema_cols.lock().unwrap()[index] = (column.name, array);
+            });
+
+            let batch = RecordBatch::try_from_iter(schema_cols.lock().unwrap().clone()).unwrap();
             writer.write(&batch).expect("Writing batch");
         }
         // writer must be closed to write footer
