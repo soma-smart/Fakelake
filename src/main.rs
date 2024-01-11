@@ -3,10 +3,12 @@ mod config;
 mod errors;
 mod generate;
 mod logger;
+mod options;
 mod providers;
 
 use crate::cli::{Cli, Commands};
 use crate::generate::generate::generate_from_paths;
+
 use clap::Parser;
 use log::error;
 

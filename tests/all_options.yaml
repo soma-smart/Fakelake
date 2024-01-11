@@ -5,7 +5,7 @@ columns:
     presence: 0.8
 
   - name: company_email
-    provider: Person.company_email
+    provider: Person.email
     domain: soma-smart.com
 
   - name: created

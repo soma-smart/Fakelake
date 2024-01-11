@@ -3,7 +3,7 @@
 use yaml_rust::{ Yaml, YamlLoader };
 
 use crate::errors::FakeLakeError;
-use crate::providers::options::presence;
+use crate::options::presence;
 use crate::providers::provider::{ Provider, ProviderBuilder };
 
 #[derive(Debug)]
@@ -140,15 +140,16 @@ pub fn get_config_from_string(file_content: String) -> Result<Config, FakeLakeEr
 
 #[cfg(test)]
 mod tests {
-    use mockall::*;
-    use mockall::predicate::*;
-    use arrow_schema::DataType;
-    use yaml_rust::Yaml;
+    use crate::options::presence::Presence;
+    use crate::providers::provider::{ Provider, Value };
 
     use super::*;
 
-    use crate::providers::options::presence::Presence;
-    use crate::providers::provider::{ Provider, Value };
+    use arrow_schema::DataType;
+    use mockall::*;
+    use mockall::predicate::*;
+    use yaml_rust::Yaml;
+
 
     #[derive(Clone)]
     struct TestProvider;

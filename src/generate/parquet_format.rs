@@ -1,14 +1,14 @@
-use arrow_array::{ArrayRef, Int32Array, RecordBatch, StringArray, Date32Array};
-use arrow_schema::{Field, DataType, Schema};
-use log::debug;
-use parquet::{arrow::ArrowWriter, basic::Compression, file::properties::WriterProperties};
-use std::sync::{ Arc, Mutex };
-use rayon::prelude::*;
-
 use crate::config::Config;
 use crate::errors::FakeLakeError;
 use crate::generate::output_format::OutputFormat;
 use crate::providers::provider;
+
+use arrow_array::{ArrayRef, Date32Array, Int32Array, RecordBatch, StringArray};
+use arrow_schema::{Field, DataType, Schema};
+use log::debug;
+use parquet::{arrow::ArrowWriter, basic::Compression, file::properties::WriterProperties};
+use rayon::prelude::*;
+use std::sync::{ Arc, Mutex };
 
 const PARQUET_EXTENSION: &str = ".parquet";
 
