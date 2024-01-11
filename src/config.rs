@@ -3,7 +3,7 @@
 use yaml_rust::{ Yaml, YamlLoader };
 
 use crate::errors::FakeLakeError;
-use crate::providers::{ presence_option, presence_option::PresenceTrait };
+use crate::providers::options::presence;
 use crate::providers::provider::{ Provider, ProviderBuilder };
 
 #[derive(Debug)]
@@ -16,7 +16,7 @@ pub struct Config {
 pub struct Column {
     pub name: String,
     pub provider: Box<dyn Provider>,
-    pub presence: Box<dyn PresenceTrait>,
+    pub presence: Box<dyn presence::Presence>,
 }
 
 impl Clone for Column {
@@ -61,7 +61,7 @@ impl Column {
                 None => return Err(FakeLakeError::BadYAMLFormat("The column {{name}} in the yaml as no provider specified.".to_string())),
             };
 
-            let presence = presence_option::new_from_yaml(column);
+            let presence = presence::new_from_yaml(column);
 
             let provider: Box<dyn Provider> = match ProviderBuilder::get_corresponding_provider(provider, column) {
                 Ok(value) => value,
@@ -147,7 +147,7 @@ mod tests {
 
     use super::*;
 
-    use crate::providers::presence_option::PresenceTrait;
+    use crate::providers::options::presence::Presence;
     use crate::providers::provider::{ Provider, Value };
 
     #[derive(Clone)]
@@ -175,13 +175,13 @@ mod tests {
             fn clone(&self) -> Self;
         }
 
-        impl PresenceTrait for TestPresence {
+        impl Presence for TestPresence {
             fn is_next_present(&self) -> bool;
             fn can_be_null(&self) -> bool;
         }
     }
 
-    fn generate_column(provider: Box<dyn Provider>, presence: Box<dyn PresenceTrait>) -> Column {
+    fn generate_column(provider: Box<dyn Provider>, presence: Box<dyn Presence>) -> Column {
         Column { name: "Testing column".to_string(), provider, presence }
     }
 
@@ -254,7 +254,7 @@ mod tests {
     fn given_one_column_without_name_should_columns_return_err() {
         let yaml = "
         columns:
-            - provider: auto-increment
+            - provider: Increment.integer
         ";
         let columns = generate_columns_from_yaml(yaml);
         expecting_err(&columns);
@@ -286,7 +286,7 @@ mod tests {
         let yaml = "
         columns:
             - name: id
-              provider: auto-increment
+              provider: Increment.integer
         ";
         let columns = generate_columns_from_yaml(yaml);
         expecting_ok(&columns);
@@ -424,7 +424,7 @@ mod tests {
         let file_content = "
         columns:
             - name: id
-              provider: auto-increment
+              provider: Increment.integer
         ".to_string();
         let res = get_config_from_string(file_content);
         expecting_ok(&res);
@@ -447,7 +447,7 @@ mod tests {
         let file_content = "
         columns:
             - name: id
-              provider: auto-increment
+              provider: Increment.integer
 
         info:
             output_name: something

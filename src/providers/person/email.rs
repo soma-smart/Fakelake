@@ -1,8 +1,8 @@
+use crate::providers::provider::{Provider, Value};
+use crate::providers::utils::string::random_characters;
+
 use arrow_schema::DataType;
 use yaml_rust::Yaml;
-
-use crate::providers::provider::{Provider, Value};
-use super::utils::random_characters;
 
 const DEFAULT_DOMAIN: &str = "example.com";
 

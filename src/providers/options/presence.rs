@@ -1,31 +1,30 @@
 use core::fmt;
+use log::{info, warn};
 use yaml_rust::Yaml;
 
-use log::{info, warn};
-
 pub trait ClonePresence {
-    fn clone_box(&self) -> Box<dyn PresenceTrait>;
+    fn clone_box(&self) -> Box<dyn Presence>;
 }
 
 impl<T> ClonePresence for T
 where
-    T: 'static + PresenceTrait + Clone,
+    T: 'static + Presence + Clone,
 {
-    fn clone_box(&self) -> Box<dyn PresenceTrait> {
+    fn clone_box(&self) -> Box<dyn Presence> {
         Box::new(self.clone())
     }
 }
 
-pub trait PresenceTrait: ClonePresence + Send + Sync {
+pub trait Presence: ClonePresence + Send + Sync {
     fn is_next_present(&self) -> bool;
     fn can_be_null(&self) -> bool;
 }
 
-// Implement Debug for all types that implement PresenceTrait
+// Implement Debug for all types that implement Presence
 #[cfg(not(tarpaulin_include))]
-impl fmt::Debug for dyn PresenceTrait {
+impl fmt::Debug for dyn Presence {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "PresenceTrait")
+        write!(f, "Presence")
     }
 }
 
@@ -34,7 +33,7 @@ struct SometimesPresent {
     pub presence: f64,
 }
 
-impl PresenceTrait for SometimesPresent {
+impl Presence for SometimesPresent {
     fn is_next_present(&self) -> bool {
         let rnd: f64 = fastrand::f64();
         if rnd > self.presence {
@@ -50,7 +49,7 @@ impl PresenceTrait for SometimesPresent {
 
 #[derive(Clone)]
 struct AlwaysPresent;
-impl PresenceTrait for AlwaysPresent {
+impl Presence for AlwaysPresent {
     fn is_next_present(&self) -> bool {
         true
     }
@@ -61,7 +60,7 @@ impl PresenceTrait for AlwaysPresent {
 
 #[derive(Clone)]
 struct NeverPresent;
-impl PresenceTrait for NeverPresent {
+impl Presence for NeverPresent {
     fn is_next_present(&self) -> bool {
         false
     }
@@ -70,7 +69,7 @@ impl PresenceTrait for NeverPresent {
     }
 }
 
-pub fn new_from_yaml(column: &Yaml) -> Box<dyn PresenceTrait> {
+pub fn new_from_yaml(column: &Yaml) -> Box<dyn Presence> {
     let presence_option = column["presence"].as_f64().or_else(|| column["presence"].as_i64().map(|i| i as f64));
 
     return match presence_option {
@@ -101,7 +100,7 @@ mod tests {
 
     use yaml_rust::YamlLoader;
 
-    fn generate_presence(presence: Option<&str>) -> Box<dyn PresenceTrait> {
+    fn generate_presence(presence: Option<&str>) -> Box<dyn Presence> {
         let yaml_str = match presence {
             Some(value) => format!("name: id{}presence: {}", "\n", value),
             None => format!("name: id"),
@@ -110,11 +109,11 @@ mod tests {
         new_from_yaml(&yaml[0])
     }
 
-    fn check_always_present(presence: Box<dyn PresenceTrait>) -> bool {
+    fn check_always_present(presence: Box<dyn Presence>) -> bool {
         !presence.can_be_null()
     }
 
-    fn check_never_present(presence: Box<dyn PresenceTrait>) -> bool {
+    fn check_never_present(presence: Box<dyn Presence>) -> bool {
         if !presence.can_be_null() {
             return false
         }
@@ -127,7 +126,7 @@ mod tests {
         return true
     }
 
-    fn check_sometimes_present(presence: Box<dyn PresenceTrait>) -> bool {
+    fn check_sometimes_present(presence: Box<dyn Presence>) -> bool {
         if !presence.can_be_null() {
             return false
         }

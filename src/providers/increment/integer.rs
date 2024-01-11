@@ -1,26 +1,26 @@
+use crate::providers::provider::{Provider, Value};
+
 use arrow_schema::DataType;
 use yaml_rust::Yaml;
-
-use crate::providers::provider::{Provider, Value};
 
 const DEFAULT_START: i64 = 0;
 
 #[derive(Clone)]
-pub struct AutoIncrementProvider {
+pub struct IncrementIntegerProvider {
     pub start: i32,
 }
 
-impl Provider for AutoIncrementProvider {
+impl Provider for IncrementIntegerProvider {
     fn value(&self, index: u32) -> Value {
         return Value::Int32(self.start + (index as i32));
     }
     fn get_parquet_type(&self) -> DataType {
         return DataType::Int32;
     }
-    fn new_from_yaml(column: &Yaml) -> AutoIncrementProvider {
+    fn new_from_yaml(column: &Yaml) -> IncrementIntegerProvider {
         let start_option = column["start"].as_i64().unwrap_or(DEFAULT_START) as i32;
 
-        return AutoIncrementProvider {
+        return IncrementIntegerProvider {
             start: start_option
         };
     }
@@ -29,24 +29,24 @@ impl Provider for AutoIncrementProvider {
 #[cfg(test)]
 mod tests {
     use crate::providers::provider::{ Value, Provider };
-    use super::{ DEFAULT_START, AutoIncrementProvider };
+    use super::{ DEFAULT_START, IncrementIntegerProvider };
 
     use arrow_schema::DataType;
     use yaml_rust::YamlLoader;
 
-    fn generate_provider(start: Option<String>) -> AutoIncrementProvider {
+    fn generate_provider(start: Option<String>) -> IncrementIntegerProvider {
         let yaml_str = match start {
             Some(value) => format!("name: id{}start: {}", "\n", value),
             None => format!("name: id"),
         };
         let yaml = YamlLoader::load_from_str(yaml_str.as_str()).unwrap();
-        AutoIncrementProvider::new_from_yaml(&yaml[0])
+        IncrementIntegerProvider::new_from_yaml(&yaml[0])
     }
 
     // Parquet type
     #[test]
     fn given_nothing_should_return_parquet_type() {
-        let provider: AutoIncrementProvider = generate_provider(None);
+        let provider: IncrementIntegerProvider = generate_provider(None);
         assert_eq!(provider.get_parquet_type(), DataType::Int32);
     }
 
@@ -75,7 +75,7 @@ mod tests {
     // Validate value calculation
     #[test]
     fn given_start_0_and_index_x_should_return_x() {
-        let provider = AutoIncrementProvider { start: 0 };
+        let provider = IncrementIntegerProvider { start: 0 };
 
         let values_to_check = [0, 4, 50];
         for value in values_to_check {
@@ -90,7 +90,7 @@ mod tests {
         let values_to_check = [0, 4, 50];
 
         for start in start_to_check {
-            let provider = AutoIncrementProvider { start };
+            let provider = IncrementIntegerProvider { start };
             for value in values_to_check {
                 let calculated = provider.value(value);
                 assert_eq!(calculated, Value::Int32(start + value as i32));
