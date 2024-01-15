@@ -145,7 +145,6 @@ mod tests {
 
     use super::*;
 
-    use arrow_schema::DataType;
     use mockall::*;
     use mockall::predicate::*;
     use yaml_rust::Yaml;
@@ -162,7 +161,6 @@ mod tests {
 
         impl Provider for TestProvider {
             fn value(&self, index: u32) -> Value;
-            fn get_parquet_type(&self) -> DataType;
             fn new_from_yaml(column: &Yaml) -> Self where Self: Sized;
         }
     }

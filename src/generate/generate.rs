@@ -1,9 +1,7 @@
 use crate::config;
 use crate::errors::FakeLakeError;
-use crate::generate::{
-    output_format::OutputFormat,
-    parquet_format::OutputParquet 
-};
+use super::output_format::OutputFormat;
+use super::parquet::parquet_format::OutputParquet;
 
 use log::{debug, error, info, warn};
 use std::path::PathBuf;

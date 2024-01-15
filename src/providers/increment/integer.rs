@@ -1,6 +1,5 @@
 use crate::providers::provider::{Provider, Value};
 
-use arrow_schema::DataType;
 use yaml_rust::Yaml;
 
 const DEFAULT_START: i64 = 0;
@@ -13,9 +12,6 @@ pub struct IncrementIntegerProvider {
 impl Provider for IncrementIntegerProvider {
     fn value(&self, index: u32) -> Value {
         return Value::Int32(self.start + (index as i32));
-    }
-    fn get_parquet_type(&self) -> DataType {
-        return DataType::Int32;
     }
     fn new_from_yaml(column: &Yaml) -> IncrementIntegerProvider {
         let start_option = column["start"].as_i64().unwrap_or(DEFAULT_START) as i32;
@@ -31,7 +27,6 @@ mod tests {
     use crate::providers::provider::{ Value, Provider };
     use super::{ DEFAULT_START, IncrementIntegerProvider };
 
-    use arrow_schema::DataType;
     use yaml_rust::YamlLoader;
 
     fn generate_provider(start: Option<String>) -> IncrementIntegerProvider {
@@ -47,7 +42,10 @@ mod tests {
     #[test]
     fn given_nothing_should_return_parquet_type() {
         let provider: IncrementIntegerProvider = generate_provider(None);
-        assert_eq!(provider.get_parquet_type(), DataType::Int32);
+        match provider.value(0) {
+            Value::Int32(_) => assert!(true),
+            _ => assert!(false)
+        };
     }
 
     // Validate YAML file

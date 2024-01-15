@@ -1,7 +1,6 @@
 use crate::providers::provider::{Provider, Value};
 use crate::providers::utils::string::random_characters;
 
-use arrow_schema::DataType;
 use yaml_rust::Yaml;
 
 #[derive(Clone)]
@@ -10,9 +9,6 @@ pub struct AlphanumericProvider;
 impl Provider for AlphanumericProvider {
     fn value(&self, _: u32) -> Value {
         Value::String(random_characters(10))
-    }
-    fn get_parquet_type(&self) -> DataType {
-        return DataType::Utf8;
     }
     fn new_from_yaml(_: &Yaml) -> AlphanumericProvider {
         return AlphanumericProvider;
@@ -24,7 +20,6 @@ mod tests {
     use crate::providers::provider::{ Value, Provider };
     use super::AlphanumericProvider;
 
-    use arrow_schema::DataType;
     use yaml_rust::YamlLoader;
 
     fn generate_provider() -> AlphanumericProvider {
@@ -38,7 +33,10 @@ mod tests {
     #[test]
     fn given_nothing_should_return_parquet_type() {
         let provider: AlphanumericProvider = AlphanumericProvider;
-        assert_eq!(provider.get_parquet_type(), DataType::Utf8);
+        match provider.value(0) {
+            Value::String(_) => assert!(true),
+            _ => assert!(false)
+        };
     }
 
     // Validate YAML file

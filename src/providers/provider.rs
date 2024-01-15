@@ -1,7 +1,6 @@
 use crate::errors::FakeLakeError;
 use crate::providers;
 
-use arrow_schema::DataType;
 use core::fmt;
 use yaml_rust::Yaml;
 
@@ -28,7 +27,6 @@ where
 
 pub trait Provider: CloneProvider + Send + Sync {
     fn value(&self, index: u32) -> Value;
-    fn get_parquet_type(&self) -> DataType;
     fn new_from_yaml(column: &Yaml) -> Self where Self: Sized;
 }
 
