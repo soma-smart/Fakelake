@@ -1,5 +1,7 @@
-pub mod date;
-pub mod integer;
-pub mod string;
 pub mod provider;
-pub mod presence_option;
+
+pub mod utils;
+
+pub mod increment;
+pub mod person;
+pub mod random;

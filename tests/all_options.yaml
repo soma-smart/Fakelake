@@ -1,21 +1,21 @@
 columns:
   - name: id
-    provider: auto-increment
+    provider: Increment.integer
     start: 42
     presence: 0.8
 
   - name: company_email
-    provider: email
+    provider: Person.email
     domain: soma-smart.com
 
   - name: created
-    provider: date
+    provider: Random.Date.date
     format: "%Y-%m-%d"
     after: 2000-02-15
     before: 2020-07-17
   
   - name: name
-    provider: string
+    provider: Random.String.alphanumeric
 
 info:
   output_name: all_options

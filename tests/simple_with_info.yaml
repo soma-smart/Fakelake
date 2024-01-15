@@ -1,9 +1,9 @@
 columns:
   - name: id
-    provider: auto-increment
+    provider: Increment.integer
 
   - name: company_email
-    provider: email
+    provider: Person.email
     presence: 0.5
 
 info:

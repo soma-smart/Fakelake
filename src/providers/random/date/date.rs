@@ -1,9 +1,8 @@
-use arrow_schema::DataType;
-use yaml_rust::Yaml;
-use chrono::{ NaiveDate, Datelike };
-use log::{ info, warn };
+use crate::providers::provider::{ Provider, Value };
 
-use crate::providers::provider::{Provider, Value};
+use chrono::{ Datelike, NaiveDate };
+use log::{ info, warn };
+use yaml_rust::Yaml;
 
 const DEFAULT_FORMAT: &str = "%Y-%m-%d";
 const DEFAULT_AFTER: &str = "1980-01-01";
@@ -19,9 +18,6 @@ pub struct DateProvider {
 impl Provider for DateProvider {
     fn value(&self, _: u32) -> Value {
         return Value::Date(fastrand::i32(self.after..self.before));
-    }
-    fn get_parquet_type(&self) -> DataType {
-        return DataType::Date32;
     }
     fn new_from_yaml(column: &Yaml) -> DateProvider {
         let mut format_option = match column["format"].as_str() {
@@ -88,7 +84,6 @@ mod tests {
     use crate::providers::provider::{ Value, Provider };
     use super::{ DEFAULT_FORMAT, DEFAULT_AFTER, DEFAULT_BEFORE, DateProvider };
 
-    use arrow_schema::DataType;
     use chrono::{ NaiveDate, Datelike };
     use yaml_rust::YamlLoader;
 
@@ -130,7 +125,10 @@ mod tests {
     #[test]
     fn given_nothing_should_return_parquet_type() {
         let provider: DateProvider = generate_provider(None, None, None);
-        assert_eq!(provider.get_parquet_type(), DataType::Date32);
+        match provider.value(0) {
+            Value::Date(_) => assert!(true),
+            _ => assert!(false)
+        };
     }
     
     // Validate YAML file

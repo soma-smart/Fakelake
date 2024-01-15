@@ -1,8 +1,10 @@
+use crate::config;
+use crate::errors::FakeLakeError;
+use super::output_format::OutputFormat;
+use super::parquet::parquet_format::OutputParquet;
+
 use log::{debug, error, info, warn};
 use std::path::PathBuf;
-
-use crate::{config, errors::FakeLakeError};
-use crate::generate::{ output_format::OutputFormat, parquet_format::OutputParquet };
 
 pub fn generate_from_paths(paths_to_config: Vec<PathBuf>) -> Result<(), FakeLakeError> {
     for path in paths_to_config {
@@ -56,10 +58,11 @@ fn wrong_format() -> Box<dyn OutputFormat> {
 
 #[cfg(test)]
 mod tests {
-    use std::env;
+    use crate::config::{ Config, Info };
 
     use super::*;
-    use crate::config::{ Config, Info };
+    
+    use std::env;
 
     fn expecting_ok<T, E>(res: &Result<T, E>) {
         match res {

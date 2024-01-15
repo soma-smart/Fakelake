@@ -1,11 +1,7 @@
-use core::fmt;
-
 use crate::errors::FakeLakeError;
-use crate::providers::integer::auto_increment::AutoIncrementProvider;
-use crate::providers::string::{ email::EmailProvider, string::StringProvider };
-use crate::providers::date::date::DateProvider;
+use crate::providers;
 
-use arrow_schema::DataType;
+use core::fmt;
 use yaml_rust::Yaml;
 
 
@@ -31,7 +27,6 @@ where
 
 pub trait Provider: CloneProvider + Send + Sync {
     fn value(&self, index: u32) -> Value;
-    fn get_parquet_type(&self) -> DataType;
     fn new_from_yaml(column: &Yaml) -> Self where Self: Sized;
 }
 
@@ -47,12 +42,21 @@ pub struct ProviderBuilder {}
 
 impl ProviderBuilder {
     pub fn get_corresponding_provider(provider: &str, column: &Yaml) -> Result<Box<dyn Provider>, FakeLakeError> {
-        match provider {
-            "auto-increment" => Ok(Box::new(AutoIncrementProvider::new_from_yaml(&column))),
-            "email" => Ok(Box::new(EmailProvider::new_from_yaml(&column))),
-            "date" => Ok(Box::new(DateProvider::new_from_yaml(&column))),
-            "string" => Ok(Box::new(StringProvider::new_from_yaml(&column))),
-            _ => Err(FakeLakeError::BadYAMLFormat("Unknown provider: {{provider}}".to_string())),
+        let mut provider_split = provider.split(".");
+        let provider_result: Result<Box<dyn Provider>, FakeLakeError> = match provider_split.next() {
+            Some("Increment") => providers::increment::builder::get_corresponding_provider(provider_split, &column),
+            Some("Person") => providers::person::builder::get_corresponding_provider(provider_split, &column),
+            Some("Random") => providers::random::builder::get_corresponding_provider(provider_split, &column),
+            _ => Err(unknown_provider(provider))
+        };
+
+        match provider_result {
+            Ok(_) => provider_result,
+            Err(_) => Err(FakeLakeError::BadYAMLFormat(format!("Unknown provider: {}", provider)))
         }
     }
+}
+
+pub fn unknown_provider(wrong_provider: &str) -> FakeLakeError {
+    FakeLakeError::BadYAMLFormat(format!("Unknown provider: {}", wrong_provider))
 }

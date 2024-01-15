@@ -1,5 +1,5 @@
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
-| `.\..\target\release\fakelake.exe generate fakelake_input.yaml` | 269.6 ± 7.0 | 263.1 | 285.5 | 1.00 |
-| `python faker_bench.py` | 13925.6 ± 419.9 | 13409.5 | 14823.8 | 51.64 ± 2.06 |
-| `python mimesis_bench.py` | 3432.4 ± 54.7 | 3365.8 | 3552.7 | 12.73 ± 0.39 |
+| `target\release\fakelake.exe generate bench\fakelake_input.yaml` | 252.8 ± 3.3 | 249.0 | 260.0 | 1.00 |
+| `python bench\mimesis_bench.py` | 3374.9 ± 21.3 | 3353.0 | 3426.2 | 13.35 ± 0.19 |
+| `python bench\faker_bench.py` | 13552.7 ± 340.5 | 13336.4 | 14446.4 | 53.62 ± 1.52 |

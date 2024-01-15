@@ -1,10 +1,52 @@
-FAKELAKE
-=====
+<br/>
+<div align="center">
+    <h1>Fakelake</h3>
+</div>
 
-Mockup / fake data generator
-----------------------------
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#about-the-project">About The Project</a>
+      <ul>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#built-with">Built with</a></li>
+        <li><a href="#benchmark">Benchmark</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#installation">Installation</a>
+      <ul>
+        <li><a href="#with-precompiled-binaries">With precompiled binaries</a></li>
+        <li><a href="#from-source">From source</a></li>
+        <li><a href="#with-cargo">With cargo</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#usage">Usage</a>
+      <ul>
+        <li><a href="#providers">Providers</a></li>
+        <li><a href="#options">Options</a></li>
+        <li><a href="#generation-details">Generation details</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#contributing">Contributing</a>
+    </li>
+    <li>
+      <a href="#license">License</a>
+    </li>
+  </ol>
+</details>
 
-Fakelake features:
+# About The Project
+Fakelake is a command line tool that generates fake data from a YAML schema. It is can generate millions of rows in seconds, and is faster than traditional generators (<a href="#benchmark">see benchmarks</a>).
+
+Fakelake is actively developed and maintained by [SOMA](https://www.linkedin.com/company/soma-smart/mycompany/) in Paris.
+
+Any feedback is welcome!
+
+## Features
 - Very fast
 - Easy to use
 - Small memory footprint
@@ -14,34 +56,32 @@ Fakelake features:
 - Cross-platform (Windows, Linux, Mac OS X)
 - MIT license
 
-Fakelake is a command line tool that generates fake data from a JSON schema.
-It is very fast and can generate millions of rows in seconds.
+## Built with
+<img src="https://www.rust-lang.org/static/images/rust-social-wide.jpg" height=100>
 
-Fakelake is actively developed and maintained by [SOMA]() in Paris.
-Any feedback is welcome!
+## Benchmark
+Benchmark of Fakelake, Mimesis and Faker:<br/>
+- Goal: Generate 1 million rows with one column: random string (length 10)
+- Specs: AMD Ryzen 5 7530U, 8Go RAM, SSD
 
+| Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
+|:---|---:|---:|---:|---:|
+| `fakelake generate bench\fakelake_input.yaml` | 252.8 ± 3.3 | 249.0 | 260.0 | 1.00 |
+| `python bench\mimesis_bench.py` | 3374.9 ± 21.3 | 3353.0 | 3426.2 | 13.35 ± 0.19 |
+| `python bench\faker_bench.py` | 13552.7 ± 340.5 | 13336.4 | 14446.4 | 53.62 ± 1.52 |
 
-How to install
---------------
+Build the benchmark yourself with scripts/benchmark.sh
 
-### With cargo
+# Installation
+## With precompiled binaries
+Download the latest release from [here](https://github.com/soma-smart/Fakelake/releases)
 
 ```bash
-$ cargo install fakelake
-```
-
-### With precompiled binaries
-
-Download the latest release from [here](#)
-
-```bash
-$ tar -xvf fakelake-<version>-<platform>.tar.gz
-$ cd fakelake-<version>-<platform>
+$ tar -xvf Fakelake_<version>_<target>.tar.gz
 $ ./fakelake --help
 ```
 
-### From source
-
+## From source
 ```bash
 $ git clone
 $ cd fakelake
@@ -49,29 +89,50 @@ $ cargo build --release
 $ ./target/release/fakelake --help
 ```
 
-How to use
-----------
-
-### Simple .parquet file generation with 1 million rows
-
-
+## With cargo
 ```bash
-$ fakelake --help
-$ fakelake --version
-$ fakelake generate --help
-$ fakelake generate customer.yaml
-$ fakelake generate customer.yaml company.yaml
+$ cargo install fakelake
 ```
 
-Benchmark
----------
+# Usage
+Generate from one or multiple files
+```bash
+$ fakelake generate tests/all_options.yaml
+$ fakelake generate tests/all_options.yaml tests/simple_with_info.yaml
+```
+<br/>
+The config file used contains a list of columns, with a specified <a href="#providers">provider</a> (for the column behavior), as well as some <a href="#options">options</a>.
+There is also an <a href="#generation-details">info</a> structure to define the output.
 
-Mimesis + Faker + Fakelake
+<img src="images/yaml_example_file.png" height=500/>
 
+## Providers
+A provider follows a naming rule as "Category.\<optional sub-category\>.provider".<br/>
+Few examples:
+- Person.email
+- Increment.integer
+- Random.String.alphanumeric
 
+## Options
+There is two types of options:
+- Options linked to the provider (date and format)
+- Options linked to the column (% presence)
 
-Contributing
-------------
+## Generation Details
+There is three optional fields:
+- output_name: To specify the location and name of the output
+- output_format: To specify the generated format (Only parquet available for now)
+- rows: To specify the number of rows to generate
 
+# Contributing
 Contributions are welcome! Feel free to submit pull requests.
 
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+# License
+
+Distributed under the MIT License. See `LICENSE.txt` for more information.

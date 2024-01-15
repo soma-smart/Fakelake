@@ -1,8 +1,7 @@
-use arrow_schema::DataType;
-use yaml_rust::Yaml;
-
 use crate::providers::provider::{Provider, Value};
-use super::utils::random_characters;
+use crate::providers::utils::string::random_characters;
+
+use yaml_rust::Yaml;
 
 const DEFAULT_DOMAIN: &str = "example.com";
 
@@ -18,9 +17,6 @@ impl Provider for EmailProvider {
         let subject: String = random_characters(10);
         return Value::String(format!("{}@{}", subject, self.domain));
     }
-    fn get_parquet_type(&self) -> DataType {
-        return DataType::Utf8;
-    }
     fn new_from_yaml(column: &Yaml) -> EmailProvider {
         let domain_option = column["domain"].as_str().unwrap_or(DEFAULT_DOMAIN).to_string();
 
@@ -35,7 +31,6 @@ mod tests {
     use crate::providers::provider::{ Value, Provider };
     use super::{ DEFAULT_DOMAIN, EmailProvider };
 
-    use arrow_schema::DataType;
     use yaml_rust::YamlLoader;
     use regex::Regex;
 
@@ -52,7 +47,10 @@ mod tests {
     #[test]
     fn given_nothing_should_return_parquet_type() {
         let provider: EmailProvider = generate_provider(None);
-        assert_eq!(provider.get_parquet_type(), DataType::Utf8);
+        match provider.value(0) {
+            Value::String(_) => assert!(true),
+            _ => assert!(false)
+        };
     }
 
     // Validate YAML file
