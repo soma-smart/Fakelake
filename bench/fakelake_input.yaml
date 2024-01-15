@@ -1,6 +1,6 @@
 columns:  
   - name: name
-    provider: string
+    provider: Random.String.alphanumeric
 
 info:
   output_name: fakelake_bench
