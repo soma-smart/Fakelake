@@ -134,3 +134,166 @@ pub fn parquet_batch_generator_builder(column: Column) -> Box<dyn ParquetBatchGe
         _ => panic!("Parquet type expected not handled.")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::providers::{
+        increment::integer::IncrementIntegerProvider,
+        random::string::alphanumeric::AlphanumericProvider,
+        random::date::date::DateProvider
+    };
+    use crate::options::presence::new_from_yaml;
+
+    use yaml_rust::YamlLoader;
+
+    #[test]
+    fn given_int_provider_should_return_batch_generator() {
+        let column = Column {
+            name: "int_column".to_string(),
+            provider: Box::new(IncrementIntegerProvider { start: 0 }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("name: test").unwrap()[0])
+        };
+
+        let ret = parquet_batch_generator_builder(column);
+        assert_eq!(ret.name(), "int_column");
+    }
+
+    #[test]
+    fn given_int_batch_generator_should_batch_correctly() {
+        let column = Column {
+            name: "int_column".to_string(),
+            provider: Box::new(IncrementIntegerProvider { start: 0 }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("name: test").unwrap()[0])
+        };
+        let batch_generator = IntBatchGenerator { column };
+        let arr = batch_generator.batch_array(1000);
+
+        assert_eq!(arr.len(), 1000);
+    }
+
+    #[test]
+    fn given_int_batch_generator_with_presence_should_batch_correctly() {
+        let column = Column {
+            name: "int_column".to_string(),
+            provider: Box::new(IncrementIntegerProvider { start: 0 }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("presence: 0.5").unwrap()[0])
+        };
+        let batch_generator = IntBatchGenerator { column };
+        let arr = batch_generator.batch_array(1000);
+
+        assert_eq!(arr.len(), 1000);
+    }
+
+    #[test]
+    #[should_panic]
+    fn given_int_batch_generator_with_wrong_provider_should_panic() {
+        let column = Column {
+            name: "int_column".to_string(),
+            provider: Box::new(AlphanumericProvider { }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("name: temp").unwrap()[0])
+        };
+        let batch_generator = IntBatchGenerator { column };
+        let arr = batch_generator.batch_array(1);
+    }
+
+    #[test]
+    fn given_str_provider_should_return_batch_generator() {
+        let column = Column {
+            name: "str_column".to_string(),
+            provider: Box::new(AlphanumericProvider { }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("name: test").unwrap()[0])
+        };
+
+        let ret = parquet_batch_generator_builder(column);
+        assert_eq!(ret.name(), "str_column");
+    }
+
+    #[test]
+    fn given_str_batch_generator_should_batch_correctly() {
+        let column = Column {
+            name: "str_column".to_string(),
+            provider: Box::new(AlphanumericProvider { }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("name: test").unwrap()[0])
+        };
+        let batch_generator = StrBatchGenerator { column };
+        let arr = batch_generator.batch_array(1000);
+
+        assert_eq!(arr.len(), 1000);
+    }
+    
+    #[test]
+    fn given_str_batch_generator_with_presence_should_batch_correctly() {
+        let column = Column {
+            name: "str_column".to_string(),
+            provider: Box::new(AlphanumericProvider { }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("presence: 0.5").unwrap()[0])
+        };
+        let batch_generator = StrBatchGenerator { column };
+        let arr = batch_generator.batch_array(1000);
+
+        assert_eq!(arr.len(), 1000);
+    }
+
+    #[test]
+    #[should_panic]
+    fn given_str_batch_generator_with_wrong_provider_should_panic() {
+        let column = Column {
+            name: "str_column".to_string(),
+            provider: Box::new(IncrementIntegerProvider { start: 0 }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("name: temp").unwrap()[0])
+        };
+        let batch_generator = StrBatchGenerator { column };
+        let arr = batch_generator.batch_array(1);
+    }
+
+    #[test]
+    fn given_date_provider_should_return_batch_generator() {
+        let column = Column {
+            name: "date_column".to_string(),
+            provider: Box::new(DateProvider { format: "%Y-%m-%d".to_string(), before: 100, after: 0 }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("name: test").unwrap()[0])
+        };
+
+        let ret = parquet_batch_generator_builder(column);
+        assert_eq!(ret.name(), "date_column");
+    }
+
+    #[test]
+    fn given_date_batch_generator_should_batch_correctly() {
+        let column = Column {
+            name: "date_column".to_string(),
+            provider: Box::new(DateProvider { format: "%Y-%m-%d".to_string(), before: 100, after: 0 }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("name: test").unwrap()[0])
+        };
+        let batch_generator = DateBatchGenerator { column };
+        let arr = batch_generator.batch_array(1000);
+
+        assert_eq!(arr.len(), 1000);
+    }
+
+    #[test]
+    fn given_date_batch_generator_with_presence_should_batch_correctly() {
+        let column = Column {
+            name: "date_column".to_string(),
+            provider: Box::new(DateProvider { format: "%Y-%m-%d".to_string(), before: 100, after: 0 }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("presence: 0.5").unwrap()[0])
+        };
+        let batch_generator = DateBatchGenerator { column };
+        let arr = batch_generator.batch_array(1000);
+
+        assert_eq!(arr.len(), 1000);
+    }
+
+    #[test]
+    #[should_panic]
+    fn given_date_batch_generator_with_wrong_provider_should_panic() {
+        let column = Column {
+            name: "date_column".to_string(),
+            provider: Box::new(IncrementIntegerProvider { start: 0 }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("name: temp").unwrap()[0])
+        };
+        let batch_generator = DateBatchGenerator { column };
+        let arr = batch_generator.batch_array(1);
+    }
+}
