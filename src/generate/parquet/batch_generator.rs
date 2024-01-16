@@ -194,7 +194,7 @@ mod tests {
             presence: new_from_yaml(&YamlLoader::load_from_str("name: temp").unwrap()[0])
         };
         let batch_generator = IntBatchGenerator { column };
-        let arr = batch_generator.batch_array(1);
+        let _ = batch_generator.batch_array(1);
     }
 
     #[test]
@@ -244,7 +244,7 @@ mod tests {
             presence: new_from_yaml(&YamlLoader::load_from_str("name: temp").unwrap()[0])
         };
         let batch_generator = StrBatchGenerator { column };
-        let arr = batch_generator.batch_array(1);
+        let _ = batch_generator.batch_array(1);
     }
 
     #[test]
@@ -294,6 +294,6 @@ mod tests {
             presence: new_from_yaml(&YamlLoader::load_from_str("name: temp").unwrap()[0])
         };
         let batch_generator = DateBatchGenerator { column };
-        let arr = batch_generator.batch_array(1);
+        let _ = batch_generator.batch_array(1);
     }
 }

@@ -3,25 +3,32 @@ use crate::errors::FakeLakeError;
 use super::output_format::OutputFormat;
 use super::parquet::parquet_format::OutputParquet;
 
-use log::{debug, error, info, warn};
+use log::{debug, info, warn};
 use std::path::PathBuf;
 
 pub fn generate_from_paths(paths_to_config: Vec<PathBuf>) -> Result<(), FakeLakeError> {
+    let mut res: Result<(), FakeLakeError> = Ok(());
+
     for path in paths_to_config {
         debug!("Parsing YAML file at: {:?}", path);
         
         let file_content = match std::fs::read_to_string(&path) {
             Ok(value) => value,
-            Err(_) => continue,
+            Err(value) => {
+                res = Err(FakeLakeError::BadYAMLFormat(value.to_string()));
+                continue
+            }
         };
 
         match generate_from_string(&path, file_content) {
-            Err(e) => error!("Unexpected error during file generation from path {:?}: {}", &path, e),
             Ok(_) => info!("File from path {:?} generated.", &path),
+            Err(e) => {
+                res = Err(FakeLakeError::BadYAMLFormat(format!("Unexpected error during file generation from path {:?}: {}", &path, e)));
+            }
         };
     }
 
-    Ok(())
+    res
 }
 
 fn generate_from_string(_: &PathBuf, file_content: String) -> Result<(), FakeLakeError> {
@@ -61,12 +68,17 @@ mod tests {
     use crate::config::{ Config, Info };
 
     use super::*;
-    
-    use std::env;
 
     fn expecting_ok<T, E>(res: &Result<T, E>) {
         match res {
             Ok(_) => assert!(true),
+            _ => assert!(false),
+        }
+    }
+
+    fn expecting_err<T, E>(res: &Result<T, E>) {
+        match res {
+            Err(_) => assert!(true),
             _ => assert!(false),
         }
     }
@@ -131,15 +143,22 @@ mod tests {
     }
 
     #[test]
-    fn given_not_existing_file_should_skip_and_return_ok() {
+    fn given_not_existing_file_should_skip_and_return_err() {
         let paths = paths_to_vec_pathbuf("this/is/not/an/existing/file");
         let output = generate_from_paths(paths);
-        expecting_ok(&output);
+        expecting_err(&output);
+    }
+
+    #[test]
+    fn given_existing_file_but_not_yaml_should_err() {
+        let paths = paths_to_vec_pathbuf("src/generate/generate.rs");
+        let output = generate_from_paths(paths);
+        expecting_err(&output);
     }
 
     #[test]
     fn given_existing_file_should_return_ok() {
-        let paths = paths_to_vec_pathbuf(&format!(r"{}{}", env::var("CARGO_MANIFEST_DIR").unwrap(), r"\tests\one_row.yaml"));
+        let paths = paths_to_vec_pathbuf("tests/one_row.yaml");
         let output = generate_from_paths(paths);
         expecting_ok(&output);
     }

@@ -57,12 +57,12 @@ Any feedback is welcome!
 - MIT license
 
 ## Built with
-<img src="https://www.rust-lang.org/static/images/rust-social-wide.jpg" height=100>
+<img src="https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white">
 
 ## Benchmark
 Benchmark of Fakelake, Mimesis and Faker:<br/>
 - Goal: Generate 1 million rows with one column: random string (length 10)
-- Specs: AMD Ryzen 5 7530U, 8Go RAM, SSD
+- Specs: Windows, AMD Ryzen 5 7530U, 8Go RAM, SSD
 
 | Command | Mean [ms] | Min [ms] | Max [ms] | Relative |
 |:---|---:|---:|---:|---:|
