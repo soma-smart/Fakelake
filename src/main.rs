@@ -12,6 +12,7 @@ use crate::generate::generate::generate_from_paths;
 use clap::Parser;
 use log::error;
 
+#[cfg(not(tarpaulin_include))]
 fn main() {
     let cli = Cli::parse();
 

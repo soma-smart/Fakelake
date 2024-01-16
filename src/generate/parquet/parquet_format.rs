@@ -109,11 +109,10 @@ fn get_schema_from_config(config: &Config) -> Schema {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::{ Column, Config, Info, get_config_from_string };
+    use crate::config::{ Column, Config, Info };
     use crate::providers::increment::integer::IncrementIntegerProvider;
     use crate::options::presence;
-    
-    use arrow_schema::Schema;
+
     use yaml_rust::YamlLoader;
 
     #[test]
@@ -125,7 +124,6 @@ mod tests {
             presence: presence::new_from_yaml(&YamlLoader::load_from_str("presence: 1").unwrap()[0])
         });
 
-        let yaml_str = "";
         let config = Config {
             columns,
             info: Some(Info { output_name: None, output_format: None, rows: None })
@@ -246,18 +244,24 @@ mod tests {
         };
 
         let output_parquet = OutputParquet {};
-        output_parquet.generate_from_config(&config);
+        match output_parquet.generate_from_config(&config) {
+            Ok(_) => assert!(true),
+            _ => assert!(false)
+        }
     }
 
     #[test]
     fn given_no_column_should_not_generate_file() {
-        let mut columns = Vec::new();
+        let columns = Vec::new();
         let config = Config {
             columns,
             info: Some(Info { output_name: Some("not_default_file".to_string()), output_format: None, rows: None })
         };
 
         let output_parquet = OutputParquet {};
-        output_parquet.generate_from_config(&config);
+        match output_parquet.generate_from_config(&config) {
+            Err(_) => assert!(true),
+            _ => assert!(false)
+        }
     }
 }
