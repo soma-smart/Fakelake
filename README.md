@@ -104,7 +104,32 @@ $ fakelake generate tests/all_options.yaml tests/simple_with_info.yaml
 The config file used contains a list of columns, with a specified <a href="#providers">provider</a> (for the column behavior), as well as some <a href="#options">options</a>.
 There is also an <a href="#generation-details">info</a> structure to define the output.
 
-<img src="images/yaml_example_file.png" height=500/>
+
+```yaml
+columns:
+  - name: id
+    provider: Increment.integer
+    start: 42
+    presence: 0.8
+
+  - name: company_email
+    provider: Person.email
+    domain: soma-smart.com
+
+  - name: created
+    provider: Random.Date.date
+    format: "%Y-%m-%d"
+    after: 2000-02-15
+    before: 2020-07-17
+
+  - name: name
+    provider: Random.String.alphanumeric
+
+info:
+  output_name: all_options
+  output_format: parquet
+  rows: 1_234_567
+```
 
 ## Providers
 A provider follows a naming rule as "Category.\<optional sub-category\>.provider".<br/>
