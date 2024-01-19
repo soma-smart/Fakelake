@@ -4,6 +4,12 @@ columns:
     start: 42
     presence: 0.8
 
+  - name: first_name
+    provider: Person.fname
+
+  - name: last_name
+    provider: Person.lname
+
   - name: company_email
     provider: Person.email
     domain: soma-smart.com
@@ -14,7 +20,7 @@ columns:
     after: 2000-02-15
     before: 2020-07-17
   
-  - name: name
+  - name: code
     provider: Random.String.alphanumeric
 
 info:
