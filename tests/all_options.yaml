@@ -4,6 +4,9 @@ columns:
     start: 42
     presence: 0.8
 
+  - name: first_name
+    provider: Person.fname
+
   - name: company_email
     provider: Person.email
     domain: soma-smart.com

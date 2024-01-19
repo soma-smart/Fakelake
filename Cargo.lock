@@ -698,6 +698,7 @@ dependencies = [
  "fastrand",
  "log",
  "mockall",
+ "once_cell",
  "parquet",
  "predicates 2.1.5",
  "rayon",
