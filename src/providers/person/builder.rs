@@ -3,6 +3,7 @@ use crate::providers::provider::Provider;
 
 use super::email::EmailProvider;
 use super::fname::FirstNameProvider;
+use super::lname::LastNameProvider;
 
 use yaml_rust::Yaml;
 
@@ -10,6 +11,7 @@ pub fn get_corresponding_provider(mut provider_split: std::str::Split<'_, &str>,
     match provider_split.next() {
         Some("email") => Ok(Box::new(EmailProvider::new_from_yaml(&column))),
         Some("fname") => Ok(Box::new(FirstNameProvider::new_from_yaml(&column))),
+        Some("lname") => Ok(Box::new(LastNameProvider::new_from_yaml(&column))),
         _ => Err(FakeLakeError::BadYAMLFormat("".to_string()))
     }
 }
@@ -37,6 +39,19 @@ mod tests {
     fn given_fname_should_return_provider() {
         let provider_name = "fname";
         let yaml_str = format!("name: fname{}provider: {}", '\n', provider_name);
+        let column = &YamlLoader::load_from_str(yaml_str.as_str()).unwrap()[0];
+
+        let provider_split = provider_name.split(".");
+        match get_corresponding_provider(provider_split, column) {
+            Ok(_) => assert!(true),
+            _ => assert!(false)
+        }
+    }
+
+    #[test]
+    fn given_lname_should_return_provider() {
+        let provider_name = "lname";
+        let yaml_str = format!("name: lname{}provider: {}", '\n', provider_name);
         let column = &YamlLoader::load_from_str(yaml_str.as_str()).unwrap()[0];
 
         let provider_split = provider_name.split(".");
