@@ -1,10 +1,10 @@
 /// Config structs used by Fakelake during YAML parsing
 ///
-use yaml_rust::{ Yaml, YamlLoader };
+use yaml_rust::{Yaml, YamlLoader};
 
 use crate::errors::FakeLakeError;
 use crate::options::presence;
-use crate::providers::provider::{ Provider, ProviderBuilder };
+use crate::providers::provider::{Provider, ProviderBuilder};
 
 #[derive(Debug)]
 pub struct Config {
@@ -31,44 +31,63 @@ impl Clone for Column {
 
 impl Column {
     pub fn is_next_present(&self) -> bool {
-        return self.presence.is_next_present()
+        self.presence.is_next_present()
     }
     pub fn can_be_null(&self) -> bool {
-        return self.presence.can_be_null()
+        self.presence.can_be_null()
     }
-    
-    pub fn generate_columns(parsed_yaml: &Vec<Yaml>) -> Result<Vec<Column>, FakeLakeError> {
+
+    pub fn generate_columns(parsed_yaml: &[Yaml]) -> Result<Vec<Column>, FakeLakeError> {
         let mut columns = Vec::new();
 
-        let yaml_columns = match parsed_yaml.get(0) {
-            Some(value) => {
-                match value["columns"].as_vec() {
-                    Some(value) => value,
-                    None => return Err(FakeLakeError::BadYAMLFormat("No columns found in the yaml file".to_string())),
+        let yaml_columns = match parsed_yaml.first() {
+            Some(value) => match value["columns"].as_vec() {
+                Some(value) => value,
+                None => {
+                    return Err(FakeLakeError::BadYAMLFormat(
+                        "No columns found in the yaml file".to_string(),
+                    ))
                 }
             },
-            None => return Err(FakeLakeError::BadYAMLFormat("The yaml file is empty".to_string())),
+            None => {
+                return Err(FakeLakeError::BadYAMLFormat(
+                    "The yaml file is empty".to_string(),
+                ))
+            }
         };
 
         // iter over columns
         for column in yaml_columns {
             let name = match column["name"].as_str() {
                 Some(value) => value,
-                None => return Err(FakeLakeError::BadYAMLFormat("One column in the yaml as no name specified.".to_string())),
+                None => {
+                    return Err(FakeLakeError::BadYAMLFormat(
+                        "One column in the yaml as no name specified.".to_string(),
+                    ))
+                }
             };
             let provider = match column["provider"].as_str() {
                 Some(value) => value,
-                None => return Err(FakeLakeError::BadYAMLFormat("The column {{name}} in the yaml as no provider specified.".to_string())),
+                None => {
+                    return Err(FakeLakeError::BadYAMLFormat(
+                        "The column {{name}} in the yaml as no provider specified.".to_string(),
+                    ))
+                }
             };
 
             let presence = presence::new_from_yaml(column);
 
-            let provider: Box<dyn Provider> = match ProviderBuilder::get_corresponding_provider(provider, column) {
-                Ok(value) => value,
-                Err(e) => return Err(FakeLakeError::BadYAMLFormat(e.to_string())),
-            };
+            let provider: Box<dyn Provider> =
+                match ProviderBuilder::get_corresponding_provider(provider, column) {
+                    Ok(value) => value,
+                    Err(e) => return Err(FakeLakeError::BadYAMLFormat(e.to_string())),
+                };
 
-            let column = Column { name: name.to_string(), provider, presence };
+            let column = Column {
+                name: name.to_string(),
+                provider,
+                presence,
+            };
             columns.push(column);
         }
 
@@ -86,37 +105,41 @@ pub struct Info {
 }
 
 impl Info {
-    pub fn parse_info_section(parsed_yaml: &Vec<Yaml>) -> Result<Info, FakeLakeError> {
-        let section_info = match parsed_yaml.get(0) {
+    pub fn parse_info_section(parsed_yaml: &[Yaml]) -> Result<Info, FakeLakeError> {
+        let section_info = match parsed_yaml.first() {
             Some(value) => &value["info"],
-            None => return Err(FakeLakeError::BadYAMLFormat("Yaml file is empty".to_string())),
-        };
-        
-        let output_name = match section_info["output_name"].as_str() {
-            Some(name) => Some(name.to_string()),
-            None => None,
+            None => {
+                return Err(FakeLakeError::BadYAMLFormat(
+                    "Yaml file is empty".to_string(),
+                ))
+            }
         };
 
-        let output_format = match section_info["output_format"].as_str() {
-            Some(format) => Some(format.to_string()),
-            None => None,
-        };
+        let output_name = section_info["output_name"]
+            .as_str()
+            .map(|name| name.to_string());
+
+        let output_format = section_info["output_format"]
+            .as_str()
+            .map(|format| format.to_string());
 
         // rows could be i64 or str (i64 with _ separators)
         let rows = match section_info["rows"].as_i64() {
             Some(rows) => Some(rows as u32),
             None => match section_info["rows"].as_str() {
-                Some(rows) => {
-                    match rows.replace("_", "").parse::<u32>() {
-                        Ok(value) => Some(value),
-                        Err(_) => None,
-                    }
+                Some(rows) => match rows.replace('_', "").parse::<u32>() {
+                    Ok(value) => Some(value),
+                    Err(_) => None,
                 },
                 None => None,
             },
         };
 
-        Ok(Info { output_name, output_format, rows })
+        Ok(Info {
+            output_name,
+            output_format,
+            rows,
+        })
     }
 }
 
@@ -133,22 +156,24 @@ pub fn get_config_from_string(file_content: String) -> Result<Config, FakeLakeEr
 
     let info = Info::parse_info_section(&parsed_yaml).unwrap();
 
-    let config = Config { columns, info: Some(info) };
+    let config = Config {
+        columns,
+        info: Some(info),
+    };
 
-    return Ok(config);
+    Ok(config)
 }
 
 #[cfg(test)]
 mod tests {
     use crate::options::presence::Presence;
-    use crate::providers::provider::{ Provider, Value };
+    use crate::providers::provider::{Provider, Value};
 
     use super::*;
 
-    use mockall::*;
     use mockall::predicate::*;
+    use mockall::*;
     use yaml_rust::Yaml;
-
 
     #[derive(Clone)]
     struct TestProvider;
@@ -181,20 +206,24 @@ mod tests {
     }
 
     fn generate_column(provider: Box<dyn Provider>, presence: Box<dyn Presence>) -> Column {
-        Column { name: "Testing column".to_string(), provider, presence }
+        Column {
+            name: "Testing column".to_string(),
+            provider,
+            presence,
+        }
     }
 
     fn expecting_err<T, E>(res: &Result<T, E>) {
         match res {
-            Err(_value) => assert!(true),
-            _ => assert!(false),
+            Err(_value) => (),
+            _ => panic!(),
         }
     }
 
     fn expecting_ok<T, E>(res: &Result<T, E>) {
         match res {
-            Ok(_) => assert!(true),
-            _ => assert!(false),
+            Ok(_) => (),
+            _ => panic!(),
         }
     }
 
@@ -204,10 +233,13 @@ mod tests {
         let mock_provider = Box::new(MockTestProvider::new());
 
         let mut mock_presence = Box::new(MockTestPresence::new());
-        mock_presence.expect_is_next_present().times(1).return_const(true);
+        mock_presence
+            .expect_is_next_present()
+            .times(1)
+            .return_const(true);
 
         let column = generate_column(mock_provider, mock_presence);
-        assert_eq!(column.is_next_present(), true);
+        assert!(column.is_next_present());
     }
 
     #[test]
@@ -215,10 +247,13 @@ mod tests {
         let mock_provider = Box::new(MockTestProvider::new());
 
         let mut mock_presence = Box::new(MockTestPresence::new());
-        mock_presence.expect_can_be_null().times(1).return_const(true);
+        mock_presence
+            .expect_can_be_null()
+            .times(1)
+            .return_const(true);
 
         let column = generate_column(mock_provider, mock_presence);
-        assert_eq!(column.can_be_null(), true);
+        assert!(column.can_be_null());
     }
 
     fn generate_columns_from_yaml(yaml_str: &str) -> Result<Vec<Column>, FakeLakeError> {
@@ -268,7 +303,7 @@ mod tests {
         let columns = generate_columns_from_yaml(yaml);
         expecting_err(&columns);
     }
-    
+
     #[test]
     fn given_unknown_provider_should_columns_return_err() {
         let yaml = "
@@ -424,7 +459,8 @@ mod tests {
         columns:
             - name: id
               provider: Increment.integer
-        ".to_string();
+        "
+        .to_string();
         let res = get_config_from_string(file_content);
         expecting_ok(&res);
     }
@@ -436,7 +472,8 @@ mod tests {
             output_name: something
             output_format: parquet
             rows: 1000000        
-        ".to_string();
+        "
+        .to_string();
         let res = get_config_from_string(file_content);
         expecting_err(&res);
     }
@@ -452,7 +489,8 @@ mod tests {
             output_name: something
             output_format: parquet
             rows: 1000000    
-        ".to_string();
+        "
+        .to_string();
         let res = get_config_from_string(file_content);
         expecting_ok(&res);
     }

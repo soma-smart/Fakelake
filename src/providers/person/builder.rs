@@ -7,12 +7,15 @@ use super::lname::LastNameProvider;
 
 use yaml_rust::Yaml;
 
-pub fn get_corresponding_provider(mut provider_split: std::str::Split<'_, &str>, column: &Yaml) -> Result<Box<dyn Provider>, FakeLakeError> {
+pub fn get_corresponding_provider(
+    mut provider_split: std::str::Split<'_, char>,
+    column: &Yaml,
+) -> Result<Box<dyn Provider>, FakeLakeError> {
     match provider_split.next() {
-        Some("email") => Ok(Box::new(EmailProvider::new_from_yaml(&column))),
-        Some("fname") => Ok(Box::new(FirstNameProvider::new_from_yaml(&column))),
-        Some("lname") => Ok(Box::new(LastNameProvider::new_from_yaml(&column))),
-        _ => Err(FakeLakeError::BadYAMLFormat("".to_string()))
+        Some("email") => Ok(Box::new(EmailProvider::new_from_yaml(column))),
+        Some("fname") => Ok(Box::new(FirstNameProvider::new_from_yaml(column))),
+        Some("lname") => Ok(Box::new(LastNameProvider::new_from_yaml(column))),
+        _ => Err(FakeLakeError::BadYAMLFormat("".to_string())),
     }
 }
 
@@ -28,10 +31,10 @@ mod tests {
         let yaml_str = format!("name: email{}provider: {}", '\n', provider_name);
         let column = &YamlLoader::load_from_str(yaml_str.as_str()).unwrap()[0];
 
-        let provider_split = provider_name.split(".");
+        let provider_split = provider_name.split('.');
         match get_corresponding_provider(provider_split, column) {
-            Ok(_) => assert!(true),
-            _ => assert!(false)
+            Ok(_) => (),
+            _ => panic!(),
         }
     }
 
@@ -41,10 +44,10 @@ mod tests {
         let yaml_str = format!("name: fname{}provider: {}", '\n', provider_name);
         let column = &YamlLoader::load_from_str(yaml_str.as_str()).unwrap()[0];
 
-        let provider_split = provider_name.split(".");
+        let provider_split = provider_name.split('.');
         match get_corresponding_provider(provider_split, column) {
-            Ok(_) => assert!(true),
-            _ => assert!(false)
+            Ok(_) => (),
+            _ => panic!(),
         }
     }
 
@@ -54,10 +57,10 @@ mod tests {
         let yaml_str = format!("name: lname{}provider: {}", '\n', provider_name);
         let column = &YamlLoader::load_from_str(yaml_str.as_str()).unwrap()[0];
 
-        let provider_split = provider_name.split(".");
+        let provider_split = provider_name.split('.');
         match get_corresponding_provider(provider_split, column) {
-            Ok(_) => assert!(true),
-            _ => assert!(false)
+            Ok(_) => (),
+            _ => panic!(),
         }
     }
 
@@ -67,10 +70,10 @@ mod tests {
         let yaml_str = format!("name: email{}provider: {}", '\n', provider_name);
         let column = &YamlLoader::load_from_str(yaml_str.as_str()).unwrap()[0];
 
-        let provider_split = provider_name.split(".");
+        let provider_split = provider_name.split('.');
         match get_corresponding_provider(provider_split, column) {
-            Err(_) => assert!(true),
-            _ => assert!(false)
+            Err(_) => (),
+            _ => panic!(),
         }
     }
 }

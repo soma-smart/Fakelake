@@ -1,7 +1,7 @@
-use crate::providers::provider::{ Provider, Value };
+use crate::providers::provider::{Provider, Value};
 
-use chrono::{ Datelike, NaiveDate };
-use log::{ info, warn };
+use chrono::{Datelike, NaiveDate};
+use log::{info, warn};
 use yaml_rust::Yaml;
 
 const DEFAULT_FORMAT: &str = "%Y-%m-%d";
@@ -17,7 +17,7 @@ pub struct DateProvider {
 
 impl Provider for DateProvider {
     fn value(&self, _: u32) -> Value {
-        return Value::Date(fastrand::i32(self.after..self.before));
+        Value::Date(fastrand::i32(self.after..self.before))
     }
     fn new_from_yaml(column: &Yaml) -> DateProvider {
         let mut format_option = match column["format"].as_str() {
@@ -25,7 +25,7 @@ impl Provider for DateProvider {
             None => {
                 warn!("No format parameter, default will be {}", DEFAULT_FORMAT);
                 DEFAULT_FORMAT
-            },
+            }
         };
 
         let after_parameter = match column["after"].as_str() {
@@ -33,14 +33,14 @@ impl Provider for DateProvider {
             None => {
                 warn!("No after parameter, default will be {}", DEFAULT_AFTER);
                 DEFAULT_AFTER
-            },
+            }
         };
         let before_parameter = match column["before"].as_str() {
             Some(after) => after,
             None => {
                 warn!("No before parameter, default will be {}", DEFAULT_BEFORE);
                 DEFAULT_BEFORE
-            },
+            }
         };
         let check_after_format = NaiveDate::parse_from_str(after_parameter, format_option);
         let check_before_format = NaiveDate::parse_from_str(before_parameter, format_option);
@@ -57,7 +57,7 @@ impl Provider for DateProvider {
                     after_option = after;
                     before_option = before;
                 }
-            },
+            }
             // If format can't be applied to after or before, put everything to default value
             (_, _) => {
                 warn!("Error while applying the format ({}) to after ({}) and before ({}) parameters. Default value used.", format_option, after_parameter, before_parameter);
@@ -71,34 +71,38 @@ impl Provider for DateProvider {
         let after_option_in_days = after_option.num_days_from_ce() - epoch.num_days_from_ce();
         let before_option_in_days = before_option.num_days_from_ce() - epoch.num_days_from_ce();
 
-        return DateProvider {
+        DateProvider {
             format: format_option.to_string(),
             after: after_option_in_days,
-            before: before_option_in_days
-        };
+            before: before_option_in_days,
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::providers::provider::{ Value, Provider };
-    use super::{ DEFAULT_FORMAT, DEFAULT_AFTER, DEFAULT_BEFORE, DateProvider };
+    use super::{DateProvider, DEFAULT_AFTER, DEFAULT_BEFORE, DEFAULT_FORMAT};
+    use crate::providers::provider::{Provider, Value};
 
-    use chrono::{ NaiveDate, Datelike };
+    use chrono::{Datelike, NaiveDate};
     use yaml_rust::YamlLoader;
 
-    fn generate_provider(format: Option<&str>, after: Option<&str>, before: Option<&str>) -> DateProvider {
+    fn generate_provider(
+        format: Option<&str>,
+        after: Option<&str>,
+        before: Option<&str>,
+    ) -> DateProvider {
         let yaml_format = match format {
             Some(value) => format!("{}format: \"{}\"", "\n", value),
-            None => format!(""),
+            None => String::new(),
         };
         let yaml_after = match after {
             Some(value) => format!("{}after: {}", "\n", value),
-            None => format!(""),
+            None => String::new(),
         };
         let yaml_before = match before {
             Some(value) => format!("{}before: {}", "\n", value),
-            None => format!(""),
+            None => String::new(),
         };
 
         let yaml_str = format!("name: id{}{}{}", yaml_format, yaml_after, yaml_before);
@@ -110,7 +114,7 @@ mod tests {
     fn get_epoch() -> NaiveDate {
         match NaiveDate::parse_from_str("1970-01-01", "%Y-%m-%d") {
             Ok(value) => value,
-            Err(_) => panic!("Should not happen as it is a tested environment")
+            Err(_) => panic!("Should not happen as it is a tested environment"),
         }
     }
 
@@ -126,19 +130,25 @@ mod tests {
     fn given_nothing_should_return_parquet_type() {
         let provider: DateProvider = generate_provider(None, None, None);
         match provider.value(0) {
-            Value::Date(_) => assert!(true),
-            _ => assert!(false)
+            Value::Date(_) => (),
+            _ => panic!(),
         };
     }
-    
+
     // Validate YAML file
     #[test]
     fn given_no_params_should_give_default() {
         let provider: DateProvider = generate_provider(None, None, None);
 
         assert_eq!(provider.format, DEFAULT_FORMAT);
-        assert_eq!(provider.before, get_day_since_epoch(DEFAULT_BEFORE, DEFAULT_FORMAT));
-        assert_eq!(provider.after, get_day_since_epoch(DEFAULT_AFTER, DEFAULT_FORMAT));
+        assert_eq!(
+            provider.before,
+            get_day_since_epoch(DEFAULT_BEFORE, DEFAULT_FORMAT)
+        );
+        assert_eq!(
+            provider.after,
+            get_day_since_epoch(DEFAULT_AFTER, DEFAULT_FORMAT)
+        );
     }
 
     #[test]
@@ -151,7 +161,7 @@ mod tests {
         assert_eq!(provider.before, get_day_since_epoch(before, DEFAULT_FORMAT));
         assert_eq!(provider.after, get_day_since_epoch(after, DEFAULT_FORMAT));
     }
-    
+
     #[test]
     fn given_no_before_should_give_default_before() {
         let format = "%Y-%m-%d";
@@ -162,7 +172,7 @@ mod tests {
         assert_eq!(provider.before, get_day_since_epoch(DEFAULT_BEFORE, format));
         assert_eq!(provider.after, get_day_since_epoch(after, format));
     }
-    
+
     #[test]
     fn given_no_after_should_give_default_after() {
         let format = "%Y-%m-%d";
@@ -182,9 +192,14 @@ mod tests {
         let provider: DateProvider = generate_provider(Some(format), Some(after), Some(before));
 
         assert_eq!(provider.format, DEFAULT_FORMAT);
-        assert_eq!(provider.before, get_day_since_epoch(DEFAULT_BEFORE, DEFAULT_FORMAT));
-        assert_eq!(provider.after, get_day_since_epoch(DEFAULT_AFTER, DEFAULT_FORMAT));
-
+        assert_eq!(
+            provider.before,
+            get_day_since_epoch(DEFAULT_BEFORE, DEFAULT_FORMAT)
+        );
+        assert_eq!(
+            provider.after,
+            get_day_since_epoch(DEFAULT_AFTER, DEFAULT_FORMAT)
+        );
     }
 
     #[test]
@@ -195,9 +210,14 @@ mod tests {
         let provider: DateProvider = generate_provider(Some(format), Some(after), Some(before));
 
         assert_eq!(provider.format, DEFAULT_FORMAT);
-        assert_eq!(provider.before, get_day_since_epoch(DEFAULT_BEFORE, DEFAULT_FORMAT));
-        assert_eq!(provider.after, get_day_since_epoch(DEFAULT_AFTER, DEFAULT_FORMAT));
-
+        assert_eq!(
+            provider.before,
+            get_day_since_epoch(DEFAULT_BEFORE, DEFAULT_FORMAT)
+        );
+        assert_eq!(
+            provider.after,
+            get_day_since_epoch(DEFAULT_AFTER, DEFAULT_FORMAT)
+        );
     }
 
     #[test]
@@ -227,7 +247,7 @@ mod tests {
                     assert!(value >= provider.after);
                     assert!(value < provider.before);
                 }
-                _ => panic!("Wrong type")
+                _ => panic!("Wrong type"),
             }
         }
     }
@@ -245,9 +265,8 @@ mod tests {
                 Value::Date(value) => {
                     assert_eq!(value, get_day_since_epoch("2020-05-18", DEFAULT_FORMAT));
                 }
-                _ => panic!("Wrong type")
+                _ => panic!("Wrong type"),
             }
         }
     }
-
 }

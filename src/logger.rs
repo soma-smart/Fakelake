@@ -17,7 +17,6 @@ pub fn init(verbose_level: u8) {
         .try_init();
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -45,18 +44,15 @@ mod tests {
     #[test]
     fn given_info_should_compile() {
         init(0);
-        assert!(true);
     }
 
     #[test]
     fn given_debug_should_compile() {
         init(1);
-        assert!(true);
     }
 
     #[test]
     fn given_trace_should_compile() {
         init(2);
-        assert!(true);
     }
 }

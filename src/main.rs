@@ -7,7 +7,7 @@ mod options;
 mod providers;
 
 use crate::cli::{Cli, Commands};
-use crate::generate::generate::generate_from_paths;
+use crate::generate::generate_from_paths;
 
 use clap::Parser;
 use log::error;
@@ -24,14 +24,12 @@ fn main() {
     match cli.command {
         Commands::Generate {
             path_to_config: paths_to_config,
-        } => {
-            match generate_from_paths(paths_to_config) {
-                Ok(_) => (),
-                Err(e) => {
-                    error!("Error: {:?}", e);
-                    std::process::exit(1);
-                }
+        } => match generate_from_paths(paths_to_config) {
+            Ok(_) => (),
+            Err(e) => {
+                error!("Error: {:?}", e);
+                std::process::exit(1);
             }
-        }
+        },
     }
 }
