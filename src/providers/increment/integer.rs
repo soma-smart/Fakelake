@@ -11,28 +11,28 @@ pub struct IncrementIntegerProvider {
 
 impl Provider for IncrementIntegerProvider {
     fn value(&self, index: u32) -> Value {
-        return Value::Int32(self.start + (index as i32));
+        Value::Int32(self.start + (index as i32))
     }
     fn new_from_yaml(column: &Yaml) -> IncrementIntegerProvider {
         let start_option = column["start"].as_i64().unwrap_or(DEFAULT_START) as i32;
 
-        return IncrementIntegerProvider {
-            start: start_option
-        };
+        IncrementIntegerProvider {
+            start: start_option,
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::providers::provider::{ Value, Provider };
-    use super::{ DEFAULT_START, IncrementIntegerProvider };
+    use super::{IncrementIntegerProvider, DEFAULT_START};
+    use crate::providers::provider::{Provider, Value};
 
     use yaml_rust::YamlLoader;
 
     fn generate_provider(start: Option<String>) -> IncrementIntegerProvider {
         let yaml_str = match start {
             Some(value) => format!("name: id{}start: {}", "\n", value),
-            None => format!("name: id"),
+            None => "name: id".to_string(),
         };
         let yaml = YamlLoader::load_from_str(yaml_str.as_str()).unwrap();
         IncrementIntegerProvider::new_from_yaml(&yaml[0])
@@ -43,8 +43,8 @@ mod tests {
     fn given_nothing_should_return_parquet_type() {
         let provider: IncrementIntegerProvider = generate_provider(None);
         match provider.value(0) {
-            Value::Int32(_) => assert!(true),
-            _ => assert!(false)
+            Value::Int32(_) => (),
+            _ => panic!(),
         };
     }
 
@@ -60,7 +60,7 @@ mod tests {
         let provider = generate_provider(Some("BadValue".to_string()));
         assert_eq!(provider.start, DEFAULT_START as i32);
     }
-    
+
     #[test]
     fn given_x_for_start_in_yaml_should_give_start_x() {
         let values_to_check = [-14, 0, 4, 50];
@@ -69,7 +69,7 @@ mod tests {
             assert_eq!(provider.start, value);
         }
     }
-    
+
     // Validate value calculation
     #[test]
     fn given_start_0_and_index_x_should_return_x() {

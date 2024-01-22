@@ -15,29 +15,32 @@ impl Provider for EmailProvider {
         // return a random email address
         // generate a random string of length 10 (subject) + @ + random domain
         let subject: String = random_characters(10);
-        return Value::String(format!("{}@{}", subject, self.domain));
+        Value::String(format!("{}@{}", subject, self.domain))
     }
     fn new_from_yaml(column: &Yaml) -> EmailProvider {
-        let domain_option = column["domain"].as_str().unwrap_or(DEFAULT_DOMAIN).to_string();
+        let domain_option = column["domain"]
+            .as_str()
+            .unwrap_or(DEFAULT_DOMAIN)
+            .to_string();
 
-        return EmailProvider {
-            domain: domain_option
-        };
+        EmailProvider {
+            domain: domain_option,
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::providers::provider::{ Value, Provider };
-    use super::{ DEFAULT_DOMAIN, EmailProvider };
+    use super::{EmailProvider, DEFAULT_DOMAIN};
+    use crate::providers::provider::{Provider, Value};
 
-    use yaml_rust::YamlLoader;
     use regex::Regex;
+    use yaml_rust::YamlLoader;
 
     fn generate_provider(start: Option<String>) -> EmailProvider {
         let yaml_str = match start {
             Some(value) => format!("name: id{}domain: {}", "\n", value),
-            None => format!("name: id"),
+            None => "name: id".to_string(),
         };
         let yaml = YamlLoader::load_from_str(yaml_str.as_str()).unwrap();
         EmailProvider::new_from_yaml(&yaml[0])
@@ -48,8 +51,8 @@ mod tests {
     fn given_nothing_should_return_parquet_type() {
         let provider: EmailProvider = generate_provider(None);
         match provider.value(0) {
-            Value::String(_) => assert!(true),
-            _ => assert!(false)
+            Value::String(_) => (),
+            _ => panic!(),
         };
     }
 
@@ -59,7 +62,7 @@ mod tests {
         let provider: EmailProvider = generate_provider(None);
         assert_eq!(provider.domain, DEFAULT_DOMAIN);
     }
-    
+
     #[test]
     fn given_x_for_domain_in_yaml_should_give_domain_x() {
         let values_to_check = ["test.com", "domain.org", "test.this"];
@@ -68,20 +71,22 @@ mod tests {
             assert_eq!(provider.domain, value);
         }
     }
-    
+
     // Validate value calculation
     #[test]
     fn given_domain_x_should_return_string_length_10_plus_1_plus_length_x() {
         let domain_to_check = ["test.com", "domain.org", "test.this"];
         for domain in domain_to_check {
-            let provider = EmailProvider { domain: format!("{}", domain)};
+            let provider = EmailProvider {
+                domain: domain.to_string(),
+            };
             let expected_length = 10 + "@".len() + domain.len();
 
             let values_to_check = [0, 4, 50];
             for value in values_to_check {
                 match provider.value(value) {
                     Value::String(value) => assert_eq!(value.len(), expected_length),
-                    _ => panic!("Wrong type")
+                    _ => panic!("Wrong type"),
                 }
             }
         }
@@ -91,7 +96,9 @@ mod tests {
     fn given_domain_x_should_return_correct_email() {
         let domain_to_check = ["test.com", "domain.org", "other.this"];
         for domain in domain_to_check {
-            let provider = EmailProvider { domain: format!("{}", domain)};
+            let provider = EmailProvider {
+                domain: domain.to_string(),
+            };
 
             let pattern = format!(r"@{}$", regex::escape(domain));
             let re = Regex::new(&pattern).unwrap();
@@ -100,7 +107,7 @@ mod tests {
             for value in values_to_check {
                 match provider.value(value) {
                     Value::String(value) => assert!(re.is_match(&value)),
-                    _ => panic!("Wrong type")
+                    _ => panic!("Wrong type"),
                 }
             }
         }

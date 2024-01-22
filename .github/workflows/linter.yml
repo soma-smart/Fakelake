@@ -1,0 +1,21 @@
+name: Fakelake Linter
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install clippy
+      run: rustup component add clippy
+    - name: Clipper checks
+      run: cargo clippy --all-targets --all-features -- -D warnings
+    - name: Install fmt
+      run: rustup component add rustfmt
+    - name: fmt Checks
+      run: cargo fmt --all -- --check
