@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="FakeLake" src="https://raw.githubusercontent.com/soma-smart/Fakelake/main/images/logo.svg">
+  <img alt="FakeLake" src="images/logo.svg?raw=true">
 </p>
 
 <details>
