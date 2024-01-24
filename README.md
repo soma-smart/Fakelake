@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="FakeLake" src="./images/logo.svg">
+  <img alt="FakeLake" src="https://raw.githubusercontent.com/soma-smart/Fakelake/main/images/logo.svg">
 </p>
 
 <details>
@@ -49,7 +49,7 @@ flowchart TD
 subgraph Z["How it works"]
 direction LR
   Y[YAML file description] --> F
-  F[FakeLake] --> P[Output file]
+  F[FakeLake] --> O[Output file (CSV, Parquet, ...)]
 end
 ```
 
