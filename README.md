@@ -42,7 +42,7 @@
 # What is FakeLake ?
 FakeLake is a command line tool that generates fake data from a YAML schema. It can generate millions of rows in seconds, and is order of magnitude faster than popular Python generators (<a href="#benchmark">see benchmarks</a>).
 
-Fakelake is actively developed and maintained by [SOMA](https://www.linkedin.com/company/soma-smart/mycompany/) in Paris 🇲🇫🦊.
+FakeLake is actively developed and maintained by [SOMA](https://www.linkedin.com/company/soma-smart/mycompany/) in Paris 🇲🇫🦊.
 ```mermaid
 flowchart TD
 
@@ -69,7 +69,7 @@ Any feedback is welcome!
 <img src="https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white">
 
 ## Benchmark
-Benchmark of Fakelake, Mimesis and Faker:<br/>
+Benchmark of FakeLake, Mimesis and Faker:<br/>
 - Goal: Generate 1 million rows with one column: random string (length 10)
 - Specs: Windows, AMD Ryzen 5 7530U, 8Go RAM, SSD
 
