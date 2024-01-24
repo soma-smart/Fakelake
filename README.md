@@ -1,9 +1,5 @@
-<div align="center">
-    <h1>Fakelake</h3>
-</div>
-
 <p align="center">
-  <img width="460" height="300" src="./images/logo.svg">
+  <img alt="FakeLake" src="./images/logo.svg">
 </p>
 
 <details>
@@ -42,10 +38,20 @@
   </ol>
 </details>
 
-# About The Project
-Fakelake is a command line tool that generates fake data from a YAML schema. It is can generate millions of rows in seconds, and is faster than traditional generators (<a href="#benchmark">see benchmarks</a>).
 
-Fakelake is actively developed and maintained by [SOMA](https://www.linkedin.com/company/soma-smart/mycompany/) in Paris.
+# What is FakeLake ?
+FakeKake is a command line tool that generates fake data from a YAML schema. It can generate millions of rows in seconds, and is order of magnitude faster than popular Python generators (<a href="#benchmark">see benchmarks</a>).
+
+Fakelake is actively developed and maintained by [SOMA](https://www.linkedin.com/company/soma-smart/mycompany/) in Paris 🇲🇫🦊.
+```mermaid
+flowchart TD
+
+subgraph Z["How it works"]
+direction LR
+  Y[YAML file description] --> F
+  F[FakeLake] --> P[Output file]
+end
+```
 
 Any feedback is welcome!
 
@@ -76,7 +82,9 @@ Benchmark of Fakelake, Mimesis and Faker:<br/>
 Build the benchmark yourself with scripts/benchmark.sh
 
 # Installation
-## With precompiled binaries
+
+## Simple way : With precompiled binaries
+
 Download the latest release from [here](https://github.com/soma-smart/Fakelake/releases)
 
 ```bash
@@ -97,14 +105,14 @@ $ ./target/release/fakelake --help
 $ cargo install fakelake
 ```
 
-# Usage
+# How to use it
 Generate from one or multiple files
 ```bash
 $ fakelake generate tests/all_options.yaml
 $ fakelake generate tests/all_options.yaml tests/simple_with_info.yaml
 ```
 <br/>
-The config file used contains a list of columns, with a specified <a href="#providers">provider</a> (for the column behavior), as well as some <a href="#options">options</a>.
+The configuration file used contains a list of columns, with a specified <a href="#providers">provider</a> (for the column behavior), as well as some <a href="#options">options</a>.
 There is also an <a href="#generation-details">info</a> structure to define the output.
 
 
