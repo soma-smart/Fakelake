@@ -1,7 +1,10 @@
-<br/>
 <div align="center">
     <h1>Fakelake</h3>
 </div>
+
+<p align="center">
+  <img width="460" height="300" src="./images/logo.svg">
+</p>
 
 <details>
   <summary>Table of Contents</summary>
