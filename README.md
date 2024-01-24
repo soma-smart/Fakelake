@@ -40,7 +40,7 @@
 
 
 # What is FakeLake ?
-FakeKake is a command line tool that generates fake data from a YAML schema. It can generate millions of rows in seconds, and is order of magnitude faster than popular Python generators (<a href="#benchmark">see benchmarks</a>).
+FakeLake is a command line tool that generates fake data from a YAML schema. It can generate millions of rows in seconds, and is order of magnitude faster than popular Python generators (<a href="#benchmark">see benchmarks</a>).
 
 Fakelake is actively developed and maintained by [SOMA](https://www.linkedin.com/company/soma-smart/mycompany/) in Paris 🇲🇫🦊.
 ```mermaid
