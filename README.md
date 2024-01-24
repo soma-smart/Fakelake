@@ -1,7 +1,6 @@
-<br/>
-<div align="center">
-    <h1>Fakelake</h3>
-</div>
+<p align="center">
+  <img alt="FakeLake" src="https://raw.githubusercontent.com/soma-smart/Fakelake/main/images/logo.svg">
+</p>
 
 <details>
   <summary>Table of Contents</summary>
@@ -39,10 +38,20 @@
   </ol>
 </details>
 
-# About The Project
-Fakelake is a command line tool that generates fake data from a YAML schema. It is can generate millions of rows in seconds, and is faster than traditional generators (<a href="#benchmark">see benchmarks</a>).
 
-Fakelake is actively developed and maintained by [SOMA](https://www.linkedin.com/company/soma-smart/mycompany/) in Paris.
+# What is FakeLake ?
+FakeKake is a command line tool that generates fake data from a YAML schema. It can generate millions of rows in seconds, and is order of magnitude faster than popular Python generators (<a href="#benchmark">see benchmarks</a>).
+
+Fakelake is actively developed and maintained by [SOMA](https://www.linkedin.com/company/soma-smart/mycompany/) in Paris 🇲🇫🦊.
+```mermaid
+flowchart TD
+
+subgraph Z["How it works"]
+direction LR
+  Y[YAML file description] --> F
+  F[FakeLake] --> O[Output file in CSV, Parquet, ...]
+end
+```
 
 Any feedback is welcome!
 
@@ -73,7 +82,9 @@ Benchmark of Fakelake, Mimesis and Faker:<br/>
 Build the benchmark yourself with scripts/benchmark.sh
 
 # Installation
-## With precompiled binaries
+
+## Simple way : With precompiled binaries
+
 Download the latest release from [here](https://github.com/soma-smart/Fakelake/releases)
 
 ```bash
@@ -94,17 +105,42 @@ $ ./target/release/fakelake --help
 $ cargo install fakelake
 ```
 
-# Usage
+# How to use it
 Generate from one or multiple files
 ```bash
 $ fakelake generate tests/all_options.yaml
 $ fakelake generate tests/all_options.yaml tests/simple_with_info.yaml
 ```
 <br/>
-The config file used contains a list of columns, with a specified <a href="#providers">provider</a> (for the column behavior), as well as some <a href="#options">options</a>.
+The configuration file used contains a list of columns, with a specified <a href="#providers">provider</a> (for the column behavior), as well as some <a href="#options">options</a>.
 There is also an <a href="#generation-details">info</a> structure to define the output.
 
-<img src="images/yaml_example_file.png" height=500/>
+
+```yaml
+columns:
+  - name: id
+    provider: Increment.integer
+    start: 42
+    presence: 0.8
+
+  - name: company_email
+    provider: Person.email
+    domain: soma-smart.com
+
+  - name: created
+    provider: Random.Date.date
+    format: "%Y-%m-%d"
+    after: 2000-02-15
+    before: 2020-07-17
+
+  - name: name
+    provider: Random.String.alphanumeric
+
+info:
+  output_name: all_options
+  output_format: parquet
+  rows: 1_234_567
+```
 
 ## Providers
 A provider follows a naming rule as "Category.\<optional sub-category\>.provider".<br/>
