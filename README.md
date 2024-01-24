@@ -49,7 +49,7 @@ flowchart TD
 subgraph Z["How it works"]
 direction LR
   Y[YAML file description] --> F
-  F[FakeLake] --> O[Output file (CSV, Parquet, ...)]
+  F[FakeLake] --> O[Output file in CSV, Parquet, ...]
 end
 ```
 
