@@ -1,12 +1,55 @@
-name: Release
+name: Release and publish artifacts
 
 on:
-  release:
-    types: [created]
+  push:
+    branches: [main]
 
 jobs:
+  get_tag:
+    name: Check if tag exists
+    runs-on: ubuntu-latest
+    outputs:
+      tag_exists: ${{ steps.check-tag.outputs.exists }}
+      tag: v${{ steps.rust_app.outputs.app_version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Get current rust app version from its Cargo.toml
+        id: rust_app
+        uses: dante-signal31/rust-app-version@v1.2.0
+      - uses: mukunku/tag-exists-action@v1.5.0
+        id: check-tag
+        with: 
+          tag: 'v${{ steps.rust_app.outputs.app_version }}'
+
   release:
-    name: release ${{ matrix.target }}
+    name: Release
+    needs: get_tag
+    if: ${{ needs.get_tag.outputs.tag_exists == 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Get Commits since last Release
+        id: changes
+        uses: simbo/changes-since-last-release-action@v1
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: '${{ needs.get_tag.outputs.tag_exists.tag }}'
+          release_name: Release ${{ needs.get_tag.outputs.tag_exists.tag }}
+          body: |
+            Changes since ${{ steps.changes.outputs.last-tag }}:
+            ${{ steps.changes.outputs.log }}
+          draft: false
+          prerelease: false
+  
+  publish:
+    needs: [get_tag, release]
+    if: ${{ needs.get_tag.result == 'success' && needs.get_tag.outputs.tag_exists == 'false' && needs.release.result == 'success'}}
+    name: Publish artifact ${{ matrix.target }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

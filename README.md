@@ -100,11 +100,6 @@ $ cargo build --release
 $ ./target/release/fakelake --help
 ```
 
-## With cargo
-```bash
-$ cargo install fakelake
-```
-
 # How to use it
 Generate from one or multiple files
 ```bash
