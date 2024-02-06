@@ -23,6 +23,11 @@ columns:
   - name: code
     provider: Random.String.alphanumeric
 
+  - name: score
+    provider: Random.Number.i32
+    min: -100
+    max: 100
+
 info:
   output_name: all_options
   output_format: parquet
