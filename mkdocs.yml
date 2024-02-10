@@ -1,0 +1,26 @@
+site_name: Fakelake Documentation
+site_url: https://soma-smart.github.io/Fakelake/
+site_author: SOMA
+site_description: Documentation about FakeLake, a command line tool that generates fake data from a YAML schema.
+
+theme:
+  name: readthedocs
+  locale: en
+  highlightjs: true
+  hljs_languages:
+    - yaml
+
+nav:
+  - 'Home': 'index.md'
+  - 'Usage':
+    - 'usage/create_your_yaml_file.md'
+    - 'usage/generate.md'
+  - 'Columns':
+    - 'Providers':
+      - 'columns/providers/increment.md'
+      - 'columns/providers/person.md'
+      - 'columns/providers/random.md'
+    - 'columns/options.md'
+  - 'Output':
+    - 'output/parameters.md'
+      

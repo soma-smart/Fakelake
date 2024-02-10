@@ -1,0 +1,19 @@
+name: Publish docs via GitHub Pages
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - docs
+      - mkdocs.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v2
+      - name: Insall mkdocs
+        run: pip install --upgrade pip && pip install mkdocs mkdocs-gen-files
+      - run: git config user.name 'github-actions[bot]' && git config user.email 'github-actions[bot]@users.noreply.github.com'
+      - name: Publish docs
+        run: mkdocs gh-deploy --force
