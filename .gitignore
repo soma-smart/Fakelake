@@ -5,6 +5,7 @@
 # Generated
 /target
 *.parquet
+/site
 
 # Coverage
 *.profraw
