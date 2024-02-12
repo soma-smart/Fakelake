@@ -18,6 +18,21 @@ Create a random date with:
 
 [Options](../options.md) are also possible.
 
+### Number
+##### i32
+```yaml
+ - name: score
+   provider: Random.Number.i32
+   min: -100
+   max: 100
+```
+Create a random 32 bits integer with:
+
+- an optional parameter **min**. Default is the minimum 32bits integer.
+- an optional parameter **max**. Default is the maximum 32bits integer.
+
+[Options](../options.md) are also possible.
+
 ### String
 ##### alphanumeric
 ```yaml

@@ -2,6 +2,14 @@
   <img alt="FakeLake" src="images/logo.svg?raw=true">
 </p>
 
+[![GitHub Release](https://img.shields.io/github/v/release/soma-smart/Fakelake?label=Release)](https://github.com/soma-smart/Fakelake/releases)
+[![Static Badge](https://img.shields.io/badge/doc-lgreen?logo=readthedocs&logoColor=black)](https://soma-smart.github.io/Fakelake/)
+
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/soma-smart/Fakelake/build.yml?logo=github&logoColor=black&label=Build)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/soma-smart/Fakelake/test.yml?logo=github&logoColor=black&label=Tests)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/soma-smart/Fakelake/total?label=Downloads)
+![GitHub Repo stars](https://img.shields.io/github/stars/soma-smart/Fakelake)
+
 <details>
   <summary>Table of Contents</summary>
   <ol>
@@ -36,13 +44,12 @@
       <a href="#license">License</a>
     </li>
   </ol>
-</details>
-
+</details><br>
 
 # What is FakeLake ?
 FakeLake is a command line tool that generates fake data from a YAML schema. It can generate millions of rows in seconds, and is order of magnitude faster than popular Python generators (<a href="#benchmark">see benchmarks</a>).
 
-FakeLake is actively developed and maintained by [SOMA](https://www.linkedin.com/company/soma-smart/mycompany/) in Paris 🇲🇫🦊.
+FakeLake is actively developed and maintained by [SOMA](https://www.linkedin.com/company/soma-smart/mycompany/) in Paris 🦊.
 ```mermaid
 flowchart TD
 
