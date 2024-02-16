@@ -12,6 +12,25 @@ pub struct Config {
     pub info: Option<Info>,
 }
 
+impl Config {
+    pub fn get_output_file_name(&self) -> &str {
+        match &self.info {
+            Some(info) => match &info.output_name {
+                Some(name) => name,
+                None => "output",
+            },
+            None => "output",
+        }
+    }
+
+    pub fn get_number_of_rows(&self) -> u32 {
+        match &self.info {
+            Some(info) => info.rows.unwrap_or(1_000_000),
+            None => 1_000_000,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Column {
     pub name: String,
@@ -493,5 +512,93 @@ mod tests {
         .to_string();
         let res = get_config_from_string(file_content);
         expecting_ok(&res);
+    }
+
+    // get_output_file_name
+    #[test]
+    fn given_no_info_should_return_default_name() {
+        let file_content = "
+        columns:
+            - name: id
+              provider: Increment.integer
+        "
+        .to_string();
+        let config = get_config_from_string(file_content).unwrap();
+        assert_eq!(config.get_output_file_name(), "output");
+    }
+
+    #[test]
+    fn given_no_name_should_return_default() {
+        let file_content = "
+        columns:
+            - name: id
+              provider: Increment.integer
+        info:
+            output_format: parquet
+            rows: 1000
+        "
+        .to_string();
+        let config = get_config_from_string(file_content).unwrap();
+        assert_eq!(config.get_output_file_name(), "output");
+    }
+
+    #[test]
+    fn given_name_should_return_name() {
+        let file_content = "
+        columns:
+            - name: id
+              provider: Increment.integer
+        info:
+            output_name: expected_name
+            output_format: parquet
+            rows: 1000
+        "
+        .to_string();
+        let config = get_config_from_string(file_content).unwrap();
+        assert_eq!(config.get_output_file_name(), "expected_name");
+    }
+
+    // get_output_rows
+    #[test]
+    fn given_no_info_should_return_default_rows() {
+        let file_content = "
+        columns:
+            - name: id
+              provider: Increment.integer
+        "
+        .to_string();
+        let config = get_config_from_string(file_content).unwrap();
+        assert_eq!(config.get_number_of_rows(), 1_000_000);
+    }
+
+    #[test]
+    fn given_no_rows_should_return_default() {
+        let file_content = "
+        columns:
+            - name: id
+              provider: Increment.integer
+        info:
+            output_name: output
+            output_format: parquet
+        "
+        .to_string();
+        let config = get_config_from_string(file_content).unwrap();
+        assert_eq!(config.get_number_of_rows(), 1_000_000);
+    }
+
+    #[test]
+    fn given_rows_should_return_rows() {
+        let file_content = "
+        columns:
+            - name: id
+              provider: Increment.integer
+        info:
+            output_name: expected_name
+            output_format: parquet
+            rows: 1_000
+        "
+        .to_string();
+        let config = get_config_from_string(file_content).unwrap();
+        assert_eq!(config.get_number_of_rows(), 1_000);
     }
 }

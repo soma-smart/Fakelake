@@ -15,23 +15,6 @@ use std::sync::{Arc, Mutex};
 
 const PARQUET_EXTENSION: &str = ".parquet";
 
-fn get_output_file_name(config: &Config) -> &str {
-    match &config.info {
-        Some(info) => match &info.output_name {
-            Some(name) => name,
-            None => "output",
-        },
-        None => "output",
-    }
-}
-
-fn get_number_of_rows(config: &Config) -> u32 {
-    match &config.info {
-        Some(info) => info.rows.unwrap_or(1_000_000),
-        None => 1_000_000,
-    }
-}
-
 #[derive(Debug, PartialEq)]
 pub struct OutputParquet;
 
@@ -47,8 +30,8 @@ impl OutputFormat for OutputParquet {
             ));
         }
 
-        let file_name = get_output_file_name(config);
-        let rows = get_number_of_rows(config);
+        let file_name = config.get_output_file_name();
+        let rows = config.get_number_of_rows();
 
         let schema = get_schema_from_config(config);
         debug!("Writing schema: {:?}", schema);
@@ -151,118 +134,6 @@ mod tests {
     fn given_get_extension() {
         let output_parquet = OutputParquet {};
         assert_eq!(output_parquet.get_extension(), ".parquet");
-    }
-
-    #[test]
-    fn given_no_infos_default_rows() {
-        let columns = vec![Column {
-            name: "id".to_string(),
-            provider: Box::new(IncrementIntegerProvider { start: 0 }),
-            presence: presence::new_from_yaml(
-                &YamlLoader::load_from_str("presence: 1").unwrap()[0],
-            ),
-        }];
-        let config = Config {
-            columns,
-            info: None,
-        };
-        assert_eq!(get_number_of_rows(&config), 1_000_000);
-    }
-
-    #[test]
-    fn given_no_infos_default_output_name() {
-        let columns = vec![Column {
-            name: "id".to_string(),
-            provider: Box::new(IncrementIntegerProvider { start: 0 }),
-            presence: presence::new_from_yaml(
-                &YamlLoader::load_from_str("presence: 1").unwrap()[0],
-            ),
-        }];
-        let config = Config {
-            columns,
-            info: None,
-        };
-        assert_eq!(get_output_file_name(&config), "output");
-    }
-
-    #[test]
-    fn given_no_rows() {
-        let columns = vec![Column {
-            name: "id".to_string(),
-            provider: Box::new(IncrementIntegerProvider { start: 0 }),
-            presence: presence::new_from_yaml(
-                &YamlLoader::load_from_str("presence: 1").unwrap()[0],
-            ),
-        }];
-        let config = Config {
-            columns,
-            info: Some(Info {
-                output_name: None,
-                output_format: None,
-                rows: None,
-            }),
-        };
-        assert_eq!(get_number_of_rows(&config), 1_000_000);
-    }
-
-    #[test]
-    fn given_rows() {
-        let columns = vec![Column {
-            name: "id".to_string(),
-            provider: Box::new(IncrementIntegerProvider { start: 0 }),
-            presence: presence::new_from_yaml(
-                &YamlLoader::load_from_str("presence: 1").unwrap()[0],
-            ),
-        }];
-        let config = Config {
-            columns,
-            info: Some(Info {
-                output_name: None,
-                output_format: None,
-                rows: Some(2_466_619),
-            }),
-        };
-        assert_eq!(get_number_of_rows(&config), 2_466_619);
-    }
-
-    #[test]
-    fn given_no_output_name() {
-        let columns = vec![Column {
-            name: "id".to_string(),
-            provider: Box::new(IncrementIntegerProvider { start: 0 }),
-            presence: presence::new_from_yaml(
-                &YamlLoader::load_from_str("presence: 1").unwrap()[0],
-            ),
-        }];
-        let config = Config {
-            columns,
-            info: Some(Info {
-                output_name: None,
-                output_format: None,
-                rows: None,
-            }),
-        };
-        assert_eq!(get_output_file_name(&config), "output");
-    }
-
-    #[test]
-    fn given_output_name() {
-        let columns = vec![Column {
-            name: "id".to_string(),
-            provider: Box::new(IncrementIntegerProvider { start: 0 }),
-            presence: presence::new_from_yaml(
-                &YamlLoader::load_from_str("presence: 1").unwrap()[0],
-            ),
-        }];
-        let config = Config {
-            columns,
-            info: Some(Info {
-                output_name: Some("not_default_file".to_string()),
-                output_format: None,
-                rows: None,
-            }),
-        };
-        assert_eq!(get_output_file_name(&config), "not_default_file");
     }
 
     #[test]
