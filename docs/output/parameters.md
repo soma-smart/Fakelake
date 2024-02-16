@@ -16,6 +16,12 @@ info:
  output_format: parquet
 ```
 
+##### CSV
+```yaml
+info:
+ output_format: csv
+```
+
 ### Rows
 To choose the number of rows in the generated file, use rows.
 ```yaml
