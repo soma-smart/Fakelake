@@ -5,6 +5,7 @@ use std::io;
 pub enum FakeLakeError {
     BadYAMLFormat(String),
     IOError(io::Error),
+    CSVError(csv::Error),
 }
 
 #[cfg(not(tarpaulin_include))]

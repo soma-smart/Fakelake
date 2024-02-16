@@ -51,7 +51,7 @@ mod tests {
         let mut cmd = Command::cargo_bin("fakelake")?;
 
         cmd.arg("generate")
-            .arg(Path::new("tests/one_row.yaml"))
+            .arg(Path::new("tests/one_row_parquet.yaml"))
             .assert()
             .success();
 
@@ -90,8 +90,8 @@ mod tests {
         let mut cmd = Command::cargo_bin("fakelake")?;
 
         cmd.arg("generate")
-            .arg(Path::new("tests/one_row.yaml"))
-            .arg(Path::new("tests/one_row.yaml"))
+            .arg(Path::new("tests/one_row_parquet.yaml"))
+            .arg(Path::new("tests/one_row_parquet.yaml"))
             .assert()
             .success();
 
@@ -104,7 +104,7 @@ mod tests {
         let mut cmd = Command::cargo_bin("fakelake")?;
 
         cmd.arg("generate")
-            .arg(Path::new("tests/one_row.yaml"))
+            .arg(Path::new("tests/one_row_parquet.yaml"))
             .arg(Path::new("this/is/not_a_file.yaml"))
             .assert()
             .failure();
@@ -113,13 +113,27 @@ mod tests {
     }
 
     #[test]
-    fn given_generate_one_file_with_verbose_should_succeed(
+    fn given_generate_one_parquet_file_with_verbose_should_succeed(
     ) -> Result<(), Box<dyn std::error::Error>> {
         let mut cmd = Command::cargo_bin("fakelake")?;
 
         cmd.arg("-v")
             .arg("generate")
-            .arg(Path::new("tests/one_row.yaml"))
+            .arg(Path::new("tests/one_row_parquet.yaml"))
+            .assert()
+            .success();
+
+        Ok(())
+    }
+
+    #[test]
+    fn given_generate_one_csv_file_with_verbose_should_succeed(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let mut cmd = Command::cargo_bin("fakelake")?;
+
+        cmd.arg("-v")
+            .arg("generate")
+            .arg(Path::new("tests/one_row_csv.yaml"))
             .assert()
             .success();
 

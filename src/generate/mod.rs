@@ -1,8 +1,10 @@
+pub mod csv;
 pub mod output_format;
 pub mod parquet;
 
 use crate::config;
 use crate::errors::FakeLakeError;
+use csv::OutputCsv;
 use output_format::OutputFormat;
 use parquet::OutputParquet;
 
@@ -53,6 +55,7 @@ fn get_corresponding_output(config: &config::Config) -> Box<dyn OutputFormat> {
         Some(info) => match &info.output_format {
             Some(output_format) => match output_format.as_str() {
                 "parquet" => Box::new(OutputParquet),
+                "csv" => Box::new(OutputCsv),
                 _ => {
                     warn!("Unknown output format specified, the file will be in parquet.");
                     Box::new(OutputParquet)
@@ -189,7 +192,7 @@ mod tests {
 
     #[test]
     fn given_existing_file_should_return_ok() {
-        let paths = paths_to_vec_pathbuf("tests/one_row.yaml");
+        let paths = paths_to_vec_pathbuf("tests/one_row_parquet.yaml");
         let output = generate_from_paths(paths);
         expecting_ok(&output);
     }
