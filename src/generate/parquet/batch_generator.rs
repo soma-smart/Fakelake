@@ -3,6 +3,7 @@ use crate::config::Column;
 use crate::providers::provider::Value;
 use arrow_array::{Array, ArrayRef, Date32Array, Int32Array, StringArray};
 use arrow_schema::DataType;
+use chrono::{Datelike, NaiveDate};
 use std::sync::Arc;
 
 pub trait CloneParquetBatchGenerator {
@@ -96,11 +97,15 @@ struct DateBatchGenerator {
 }
 impl ParquetBatchGenerator for DateBatchGenerator {
     fn batch_array(&self, rows_to_generate: u32) -> Arc<dyn Array> {
+        let epoch = NaiveDate::parse_from_str("1970-01-01", "%Y-%m-%d").unwrap();
+
         let mut vec: Vec<Option<i32>> = Vec::new();
         for i in 0..rows_to_generate {
             if self.column.is_next_present() {
                 match self.column.provider.value(i) {
-                    Value::Date(value) => vec.push(Some(value)),
+                    Value::Date(value) => {
+                        vec.push(Some(value.num_days_from_ce() - epoch.num_days_from_ce()))
+                    }
                     _ => panic!("Wrong provider type"),
                 }
             } else {

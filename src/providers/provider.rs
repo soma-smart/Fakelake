@@ -1,6 +1,7 @@
 use crate::errors::FakeLakeError;
 use crate::providers;
 
+use chrono::NaiveDate;
 use core::fmt;
 use yaml_rust::Yaml;
 
@@ -8,7 +9,7 @@ use yaml_rust::Yaml;
 pub enum Value {
     Int32(i32),
     String(String),
-    Date(i32),
+    Date(NaiveDate),
 }
 
 pub trait CloneProvider {

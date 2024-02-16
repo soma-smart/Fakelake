@@ -17,7 +17,9 @@ pub struct DateProvider {
 
 impl Provider for DateProvider {
     fn value(&self, _: u32) -> Value {
-        Value::Date(fastrand::i32(self.after..self.before))
+        Value::Date(
+            NaiveDate::from_num_days_from_ce_opt(fastrand::i32(self.after..self.before)).unwrap(),
+        )
     }
     fn new_from_yaml(column: &Yaml) -> DateProvider {
         let mut format_option = match column["format"].as_str() {
@@ -67,9 +69,8 @@ impl Provider for DateProvider {
             }
         }
 
-        let epoch = NaiveDate::parse_from_str("1970-01-01", "%Y-%m-%d").unwrap();
-        let after_option_in_days = after_option.num_days_from_ce() - epoch.num_days_from_ce();
-        let before_option_in_days = before_option.num_days_from_ce() - epoch.num_days_from_ce();
+        let after_option_in_days = after_option.num_days_from_ce();
+        let before_option_in_days = before_option.num_days_from_ce();
 
         DateProvider {
             format: format_option.to_string(),
@@ -111,16 +112,9 @@ mod tests {
         DateProvider::new_from_yaml(&yaml[0])
     }
 
-    fn get_epoch() -> NaiveDate {
-        match NaiveDate::parse_from_str("1970-01-01", "%Y-%m-%d") {
-            Ok(value) => value,
-            Err(_) => panic!("Should not happen as it is a tested environment"),
-        }
-    }
-
-    fn get_day_since_epoch(date: &str, format: &str) -> i32 {
+    fn get_day_since_year0(date: &str, format: &str) -> i32 {
         match NaiveDate::parse_from_str(date, format) {
-            Ok(value) => value.num_days_from_ce() - get_epoch().num_days_from_ce(),
+            Ok(value) => value.num_days_from_ce(),
             Err(_) => panic!("Should not happen as it is a tested environment"),
         }
     }
@@ -143,11 +137,11 @@ mod tests {
         assert_eq!(provider.format, DEFAULT_FORMAT);
         assert_eq!(
             provider.before,
-            get_day_since_epoch(DEFAULT_BEFORE, DEFAULT_FORMAT)
+            get_day_since_year0(DEFAULT_BEFORE, DEFAULT_FORMAT)
         );
         assert_eq!(
             provider.after,
-            get_day_since_epoch(DEFAULT_AFTER, DEFAULT_FORMAT)
+            get_day_since_year0(DEFAULT_AFTER, DEFAULT_FORMAT)
         );
     }
 
@@ -158,8 +152,8 @@ mod tests {
         let provider: DateProvider = generate_provider(None, Some(after), Some(before));
 
         assert_eq!(provider.format, DEFAULT_FORMAT);
-        assert_eq!(provider.before, get_day_since_epoch(before, DEFAULT_FORMAT));
-        assert_eq!(provider.after, get_day_since_epoch(after, DEFAULT_FORMAT));
+        assert_eq!(provider.before, get_day_since_year0(before, DEFAULT_FORMAT));
+        assert_eq!(provider.after, get_day_since_year0(after, DEFAULT_FORMAT));
     }
 
     #[test]
@@ -169,8 +163,8 @@ mod tests {
         let provider: DateProvider = generate_provider(Some(format), Some(after), None);
 
         assert_eq!(provider.format, format);
-        assert_eq!(provider.before, get_day_since_epoch(DEFAULT_BEFORE, format));
-        assert_eq!(provider.after, get_day_since_epoch(after, format));
+        assert_eq!(provider.before, get_day_since_year0(DEFAULT_BEFORE, format));
+        assert_eq!(provider.after, get_day_since_year0(after, format));
     }
 
     #[test]
@@ -180,8 +174,8 @@ mod tests {
         let provider: DateProvider = generate_provider(Some(format), None, Some(before));
 
         assert_eq!(provider.format, format);
-        assert_eq!(provider.before, get_day_since_epoch(before, format));
-        assert_eq!(provider.after, get_day_since_epoch(DEFAULT_AFTER, format));
+        assert_eq!(provider.before, get_day_since_year0(before, format));
+        assert_eq!(provider.after, get_day_since_year0(DEFAULT_AFTER, format));
     }
 
     #[test]
@@ -194,11 +188,11 @@ mod tests {
         assert_eq!(provider.format, DEFAULT_FORMAT);
         assert_eq!(
             provider.before,
-            get_day_since_epoch(DEFAULT_BEFORE, DEFAULT_FORMAT)
+            get_day_since_year0(DEFAULT_BEFORE, DEFAULT_FORMAT)
         );
         assert_eq!(
             provider.after,
-            get_day_since_epoch(DEFAULT_AFTER, DEFAULT_FORMAT)
+            get_day_since_year0(DEFAULT_AFTER, DEFAULT_FORMAT)
         );
     }
 
@@ -212,11 +206,11 @@ mod tests {
         assert_eq!(provider.format, DEFAULT_FORMAT);
         assert_eq!(
             provider.before,
-            get_day_since_epoch(DEFAULT_BEFORE, DEFAULT_FORMAT)
+            get_day_since_year0(DEFAULT_BEFORE, DEFAULT_FORMAT)
         );
         assert_eq!(
             provider.after,
-            get_day_since_epoch(DEFAULT_AFTER, DEFAULT_FORMAT)
+            get_day_since_year0(DEFAULT_AFTER, DEFAULT_FORMAT)
         );
     }
 
@@ -228,8 +222,8 @@ mod tests {
         let provider: DateProvider = generate_provider(Some(format), Some(after), Some(before));
 
         assert_eq!(provider.format, format);
-        assert_eq!(provider.before, get_day_since_epoch(after, format));
-        assert_eq!(provider.after, get_day_since_epoch(before, format));
+        assert_eq!(provider.before, get_day_since_year0(after, format));
+        assert_eq!(provider.after, get_day_since_year0(before, format));
     }
 
     // Validate value calculation
@@ -237,15 +231,15 @@ mod tests {
     fn given_provider_should_return_between_after_inclusive_and_before_exclusive() {
         let provider = DateProvider {
             format: DEFAULT_FORMAT.to_string(),
-            after: get_day_since_epoch(DEFAULT_AFTER, DEFAULT_FORMAT),
-            before: get_day_since_epoch(DEFAULT_BEFORE, DEFAULT_FORMAT),
+            after: get_day_since_year0(DEFAULT_AFTER, DEFAULT_FORMAT),
+            before: get_day_since_year0(DEFAULT_BEFORE, DEFAULT_FORMAT),
         };
 
         for value in 1..100 {
             match provider.value(value) {
                 Value::Date(value) => {
-                    assert!(value >= provider.after);
-                    assert!(value < provider.before);
+                    assert!(value.num_days_from_ce() >= provider.after);
+                    assert!(value.num_days_from_ce() < provider.before);
                 }
                 _ => panic!("Wrong type"),
             }
@@ -256,14 +250,17 @@ mod tests {
     fn given_one_day_range_should_return_always_same_date() {
         let provider = DateProvider {
             format: DEFAULT_FORMAT.to_string(),
-            after: get_day_since_epoch("2020-05-18", DEFAULT_FORMAT),
-            before: get_day_since_epoch("2020-05-19", DEFAULT_FORMAT),
+            after: get_day_since_year0("2020-05-18", DEFAULT_FORMAT),
+            before: get_day_since_year0("2020-05-19", DEFAULT_FORMAT),
         };
 
         for value in 1..100 {
             match provider.value(value) {
                 Value::Date(value) => {
-                    assert_eq!(value, get_day_since_epoch("2020-05-18", DEFAULT_FORMAT));
+                    assert_eq!(
+                        value.num_days_from_ce(),
+                        get_day_since_year0("2020-05-18", DEFAULT_FORMAT)
+                    );
                 }
                 _ => panic!("Wrong type"),
             }
