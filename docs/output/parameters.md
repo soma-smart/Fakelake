@@ -20,7 +20,9 @@ info:
 ```yaml
 info:
  output_format: csv
+ delimiter: ','
 ```
+Default delimiter is ',' but you can specify any character.
 
 ### Rows
 To choose the number of rows in the generated file, use rows.

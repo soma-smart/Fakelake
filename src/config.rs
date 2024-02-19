@@ -122,12 +122,18 @@ impl Column {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub enum OutputType {
+    Parquet(),
+    Csv(u8),
+}
+
 #[derive(Debug)]
 pub struct Info {
     /// If not specified, output_name takes the name of the input file
     pub output_name: Option<String>,
     /// By default, output_format is Parquet
-    pub output_format: Option<String>,
+    pub output_format: Option<OutputType>,
     pub rows: Option<u32>,
 }
 
@@ -146,9 +152,29 @@ impl Info {
             .as_str()
             .map(|name| name.to_string());
 
-        let output_format = section_info["output_format"]
+        let output_format = match section_info["output_format"]
             .as_str()
-            .map(|format| format.to_string());
+            .map(|format| format.to_string())
+        {
+            Some(value) if value == "parquet" => Some(OutputType::Parquet()),
+            Some(value) if value == "csv" => {
+                let delimiter = match section_info["delimiter"].as_str() {
+                    Some(delimiter_param) => {
+                        match delimiter_param.len() {
+                            value if value > 1 => {
+                                warn!("Delimiter given for CSV should be one char. Default ',' is taken.");
+                                b','
+                            }
+                            1 => *delimiter_param.as_bytes().first().unwrap(),
+                            _ => b',',
+                        }
+                    }
+                    _ => b',',
+                };
+                Some(OutputType::Csv(delimiter))
+            }
+            _ => None,
+        };
 
         // rows could be i64 or str (i64 with _ separators)
         let rows = match section_info["rows"].as_i64() {
@@ -419,7 +445,66 @@ mod tests {
         expecting_ok(&info);
         let info = &info.unwrap();
         assert_eq!(info.output_name, None);
-        assert_eq!(info.output_format, Some("parquet".to_string()));
+        assert_eq!(info.output_format, Some(OutputType::Parquet()));
+        assert_eq!(info.rows, None);
+    }
+
+    #[test]
+    fn given_csv_format_should_use_default_delimiter() {
+        let yaml = "
+        info:
+            output_format: csv
+        ";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+        let info = &info.unwrap();
+        assert_eq!(info.output_name, None);
+        assert_eq!(info.output_format, Some(OutputType::Csv(b',')));
+        assert_eq!(info.rows, None);
+    }
+
+    #[test]
+    fn given_csv_format_with_custom_delimiter_should_use_custom_delimiter() {
+        let yaml = "
+        info:
+            output_format: csv
+            delimiter: '|'
+        ";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+        let info = &info.unwrap();
+        assert_eq!(info.output_name, None);
+        assert_eq!(info.output_format, Some(OutputType::Csv(b'|')));
+        assert_eq!(info.rows, None);
+    }
+
+    #[test]
+    fn given_csv_format_with_too_long_delimiter_should_use_default_delimiter() {
+        let yaml = "
+        info:
+            output_format: csv
+            delimiter: '|||'
+        ";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+        let info = &info.unwrap();
+        assert_eq!(info.output_name, None);
+        assert_eq!(info.output_format, Some(OutputType::Csv(b',')));
+        assert_eq!(info.rows, None);
+    }
+
+    #[test]
+    fn given_csv_format_with_empty_delimiter_should_use_default_delimiter() {
+        let yaml = "
+        info:
+            output_format: csv
+            delimiter: ''
+        ";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+        let info = &info.unwrap();
+        assert_eq!(info.output_name, None);
+        assert_eq!(info.output_format, Some(OutputType::Csv(b',')));
         assert_eq!(info.rows, None);
     }
 
