@@ -30,7 +30,7 @@ impl OutputFormat for OutputParquet {
             ));
         }
 
-        let file_name = config.get_output_file_name();
+        let file_name = config.get_output_file_name(self.get_extension());
         let rows = config.get_number_of_rows();
 
         let schema = get_schema_from_config(config);
@@ -45,7 +45,7 @@ impl OutputFormat for OutputParquet {
         // ceil division
         let iterations = (rows as f64 / batch_size as f64).ceil() as u32;
 
-        let file = std::fs::File::create(format!("{}{}", file_name, PARQUET_EXTENSION)).unwrap();
+        let file = std::fs::File::create(file_name).unwrap();
         let mut writer = ArrowWriter::try_new(file, Arc::new(schema.clone()), Some(props)).unwrap();
 
         let mut schema_cols: Vec<(String, ArrayRef)> = Vec::new();

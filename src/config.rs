@@ -1,5 +1,6 @@
 /// Config structs used by Fakelake during YAML parsing
 ///
+use log::warn;
 use yaml_rust::{Yaml, YamlLoader};
 
 use crate::errors::FakeLakeError;
@@ -13,14 +14,21 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn get_output_file_name(&self) -> &str {
-        match &self.info {
+    pub fn get_output_file_name(&self, extension: &str) -> String {
+        let file_name = match &self.info {
             Some(info) => match &info.output_name {
                 Some(name) => name,
                 None => "output",
             },
             None => "output",
+        };
+
+        if file_name.contains(extension) {
+            warn!("output_name parameter contains the file extension. It has not been added a second time.");
+            return file_name.to_string();
         }
+
+        format!("{}{}", file_name, extension)
     }
 
     pub fn get_number_of_rows(&self) -> u32 {
@@ -524,7 +532,7 @@ mod tests {
         "
         .to_string();
         let config = get_config_from_string(file_content).unwrap();
-        assert_eq!(config.get_output_file_name(), "output");
+        assert_eq!(config.get_output_file_name(".parquet"), "output.parquet");
     }
 
     #[test]
@@ -539,7 +547,7 @@ mod tests {
         "
         .to_string();
         let config = get_config_from_string(file_content).unwrap();
-        assert_eq!(config.get_output_file_name(), "output");
+        assert_eq!(config.get_output_file_name(".parquet"), "output.parquet");
     }
 
     #[test]
@@ -555,7 +563,45 @@ mod tests {
         "
         .to_string();
         let config = get_config_from_string(file_content).unwrap();
-        assert_eq!(config.get_output_file_name(), "expected_name");
+        assert_eq!(
+            config.get_output_file_name(".parquet"),
+            "expected_name.parquet"
+        );
+    }
+
+    #[test]
+    fn given_no_extension_should_return_name() {
+        let file_content = "
+        columns:
+            - name: id
+              provider: Increment.integer
+        info:
+            output_name: expected_name
+            output_format: parquet
+            rows: 1000
+        "
+        .to_string();
+        let config = get_config_from_string(file_content).unwrap();
+        assert_eq!(config.get_output_file_name(""), "expected_name");
+    }
+
+    #[test]
+    fn given_file_name_with_extension_should_return_name() {
+        let file_content = "
+        columns:
+            - name: id
+              provider: Increment.integer
+        info:
+            output_name: expected_name.parquet
+            output_format: parquet
+            rows: 1000
+        "
+        .to_string();
+        let config = get_config_from_string(file_content).unwrap();
+        assert_eq!(
+            config.get_output_file_name(".parquet"),
+            "expected_name.parquet"
+        );
     }
 
     // get_output_rows

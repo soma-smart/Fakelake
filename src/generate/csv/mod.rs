@@ -22,10 +22,10 @@ impl OutputFormat for OutputCsv {
             ));
         }
 
-        let file_name = config.get_output_file_name();
+        let file_name = config.get_output_file_name(self.get_extension());
         let rows = config.get_number_of_rows();
 
-        let mut wtr = match Writer::from_path(format!("{}{}", file_name, self.get_extension())) {
+        let mut wtr = match Writer::from_path(file_name) {
             Ok(value) => value,
             Err(e) => {
                 return Err(FakeLakeError::CSVError(e));
