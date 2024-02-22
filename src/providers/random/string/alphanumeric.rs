@@ -31,7 +31,7 @@ mod tests {
 
     // Parquet type
     #[test]
-    fn given_nothing_should_return_parquet_type() {
+    fn given_nothing_should_return_string_type() {
         let provider: AlphanumericProvider = AlphanumericProvider;
         match provider.value(0) {
             Value::String(_) => (),

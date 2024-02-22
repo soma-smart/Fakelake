@@ -7,6 +7,7 @@ use yaml_rust::Yaml;
 
 #[derive(PartialEq, fmt::Debug)]
 pub enum Value {
+    Bool(bool),
     Int32(i32),
     String(String),
     Date(NaiveDate),
