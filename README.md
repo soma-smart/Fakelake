@@ -159,7 +159,7 @@ There is two types of options:
 ## Generation Details
 There is three optional fields:
 - output_name: To specify the location and name of the output
-- output_format: To specify the generated format (Only parquet available for now)
+- output_format: To specify the generated format (we support Parquet and CSV for now)
 - rows: To specify the number of rows to generate
 
 # Contributing

@@ -1,0 +1,9 @@
+columns:
+  - name: id
+    provider: Increment.integer
+
+info:
+  output_name: one_row
+  output_format: csv
+  delimiter: '|'
+  rows: 1

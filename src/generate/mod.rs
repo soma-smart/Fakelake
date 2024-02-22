@@ -1,8 +1,10 @@
+pub mod csv;
 pub mod output_format;
 pub mod parquet;
 
 use crate::config;
 use crate::errors::FakeLakeError;
+use csv::OutputCsv;
 use output_format::OutputFormat;
 use parquet::OutputParquet;
 
@@ -51,12 +53,9 @@ pub fn generate_from_config(config: config::Config) -> Result<(), FakeLakeError>
 fn get_corresponding_output(config: &config::Config) -> Box<dyn OutputFormat> {
     match &config.info {
         Some(info) => match &info.output_format {
-            Some(output_format) => match output_format.as_str() {
-                "parquet" => Box::new(OutputParquet),
-                _ => {
-                    warn!("Unknown output format specified, the file will be in parquet.");
-                    Box::new(OutputParquet)
-                }
+            Some(output_format) => match output_format {
+                config::OutputType::Parquet() => Box::new(OutputParquet),
+                config::OutputType::Csv(value) => Box::new(OutputCsv::new(*value)),
             },
             None => wrong_format(),
         },
@@ -71,7 +70,7 @@ fn wrong_format() -> Box<dyn OutputFormat> {
 
 #[cfg(test)]
 mod tests {
-    use crate::config::{Config, Info};
+    use crate::config::{Config, Info, OutputType};
 
     use super::*;
 
@@ -118,26 +117,10 @@ mod tests {
     }
 
     #[test]
-    fn given_unknown_format_should_call_parquet_generation() {
-        let info = Some(Info {
-            output_name: None,
-            output_format: Some("not a format".to_string()),
-            rows: None,
-        });
-        let config = Config {
-            columns: Vec::new(),
-            info,
-        };
-
-        let output = get_corresponding_output(&config);
-        assert_eq!(output.get_extension(), OutputParquet.get_extension());
-    }
-
-    #[test]
     fn given_parquet_format_should_call_parquet_generation() {
         let info = Some(Info {
             output_name: None,
-            output_format: Some("parquet".to_string()),
+            output_format: Some(OutputType::Parquet()),
             rows: None,
         });
         let config = Config {
@@ -189,7 +172,7 @@ mod tests {
 
     #[test]
     fn given_existing_file_should_return_ok() {
-        let paths = paths_to_vec_pathbuf("tests/one_row.yaml");
+        let paths = paths_to_vec_pathbuf("tests/one_row_parquet.yaml");
         let output = generate_from_paths(paths);
         expecting_ok(&output);
     }
