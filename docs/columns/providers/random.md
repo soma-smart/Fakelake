@@ -1,6 +1,15 @@
 Random provider
 ------
 
+### Boolean
+```yaml
+ - name: is_subscribed
+   provider: Random.bool
+```
+Create a random boolean.
+
+[Options](../options.md) are also possible.
+
 ### Date
 ##### date
 ```yaml
