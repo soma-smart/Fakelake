@@ -1,8 +1,10 @@
 use super::utils::get_parquet_type_from_column;
 use crate::config::Column;
 use crate::providers::provider::Value;
-use arrow_array::{Array, ArrayRef, BooleanArray, Date32Array, Int32Array, StringArray};
-use arrow_schema::DataType;
+use arrow_array::{
+    Array, ArrayRef, BooleanArray, Date32Array, Int32Array, StringArray, TimestampSecondArray,
+};
+use arrow_schema::{DataType, TimeUnit};
 use chrono::{Datelike, NaiveDate};
 use std::sync::Arc;
 
@@ -130,7 +132,7 @@ impl ParquetBatchGenerator for DateBatchGenerator {
         for i in 0..rows_to_generate {
             if self.column.is_next_present() {
                 match self.column.provider.value(i) {
-                    Value::Date(value) => {
+                    Value::Date(value, _) => {
                         vec.push(Some(value.num_days_from_ce() - epoch.num_days_from_ce()))
                     }
                     _ => panic!("Wrong provider type"),
@@ -151,12 +153,42 @@ impl ParquetBatchGenerator for DateBatchGenerator {
     }
 }
 
+#[derive(Clone)]
+struct TimestampBatchGenerator {
+    column: Column,
+}
+impl ParquetBatchGenerator for TimestampBatchGenerator {
+    fn batch_array(&self, rows_to_generate: u32) -> Arc<dyn Array> {
+        let mut vec: Vec<Option<i64>> = Vec::new();
+        for i in 0..rows_to_generate {
+            if self.column.is_next_present() {
+                match self.column.provider.value(i) {
+                    Value::Timestamp(value, _) => vec.push(Some(value.timestamp())),
+                    _ => panic!("Wrong provider type"),
+                }
+            } else {
+                vec.push(None)
+            }
+        }
+        Arc::new(TimestampSecondArray::from(vec)) as ArrayRef
+    }
+    fn name(&self) -> &str {
+        &self.column.name
+    }
+    fn new(column: Column) -> TimestampBatchGenerator {
+        TimestampBatchGenerator { column }
+    }
+}
+
 pub fn parquet_batch_generator_builder(column: Column) -> Box<dyn ParquetBatchGenerator> {
     match get_parquet_type_from_column(column.clone()) {
         DataType::Boolean => Box::new(BoolBatchGenerator::new(column.clone())),
         DataType::Int32 => Box::new(IntBatchGenerator::new(column.clone())),
         DataType::Utf8 => Box::new(StrBatchGenerator::new(column.clone())),
         DataType::Date32 => Box::new(DateBatchGenerator::new(column.clone())),
+        DataType::Timestamp(TimeUnit::Second, None) => {
+            Box::new(TimestampBatchGenerator::new(column.clone()))
+        }
         _ => panic!("Parquet type expected not handled."),
     }
 }
@@ -167,7 +199,8 @@ mod tests {
     use crate::options::presence::new_from_yaml;
     use crate::providers::{
         increment::integer::IncrementIntegerProvider, random::bool::BoolProvider,
-        random::date::date::DateProvider, random::string::alphanumeric::AlphanumericProvider,
+        random::date::date::DateProvider, random::date::datetime::DatetimeProvider,
+        random::string::alphanumeric::AlphanumericProvider,
     };
 
     use yaml_rust::YamlLoader;
@@ -385,6 +418,69 @@ mod tests {
             presence: new_from_yaml(&YamlLoader::load_from_str("name: temp").unwrap()[0]),
         };
         let batch_generator = DateBatchGenerator { column };
+        let _ = batch_generator.batch_array(1);
+    }
+
+    // Timestamp batch generator
+    #[test]
+    fn given_timestamp_provider_should_return_batch_generator() {
+        let column = Column {
+            name: "timestamp_column".to_string(),
+            provider: Box::new(DatetimeProvider {
+                format: "%Y-%m-%d %H:%M:%S".to_string(),
+                after: 10_000_000,
+                before: 12_000_000,
+            }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("name: test").unwrap()[0]),
+        };
+
+        let ret = parquet_batch_generator_builder(column);
+        assert_eq!(ret.name(), "timestamp_column");
+    }
+
+    #[test]
+    fn given_timestamp_batch_generator_should_batch_correctly() {
+        let column = Column {
+            name: "timestamp_column".to_string(),
+            provider: Box::new(DatetimeProvider {
+                format: "%Y-%m-%d %H:%M:%S".to_string(),
+                after: 10_000_000,
+                before: 12_000_000,
+            }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("name: test").unwrap()[0]),
+        };
+        let batch_generator = TimestampBatchGenerator { column };
+        let arr = batch_generator.batch_array(1000);
+
+        assert_eq!(arr.len(), 1000);
+    }
+
+    #[test]
+    fn given_timestamp_batch_generator_with_presence_should_batch_correctly() {
+        let column = Column {
+            name: "timestamp_column".to_string(),
+            provider: Box::new(DatetimeProvider {
+                format: "%Y-%m-%d %H:%M:%S".to_string(),
+                after: 10_000_000,
+                before: 12_000_000,
+            }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("presence: 0.5").unwrap()[0]),
+        };
+        let batch_generator = TimestampBatchGenerator { column };
+        let arr = batch_generator.batch_array(1000);
+
+        assert_eq!(arr.len(), 1000);
+    }
+
+    #[test]
+    #[should_panic]
+    fn given_timestamp_batch_generator_with_wrong_provider_should_panic() {
+        let column = Column {
+            name: "timestamp_column".to_string(),
+            provider: Box::new(IncrementIntegerProvider { start: 0 }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("name: temp").unwrap()[0]),
+        };
+        let batch_generator = TimestampBatchGenerator { column };
         let _ = batch_generator.batch_array(1);
     }
 }
