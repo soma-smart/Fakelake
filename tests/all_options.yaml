@@ -23,6 +23,9 @@ columns:
   - name: code
     provider: Random.String.alphanumeric
 
+  - name: is_subscribed
+    provider: Random.bool
+
   - name: score
     provider: Random.Number.i32
     min: -100

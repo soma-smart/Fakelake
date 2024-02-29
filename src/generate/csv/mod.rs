@@ -57,6 +57,7 @@ impl OutputFormat for OutputCsv {
                 let mut str_value = "".to_string();
                 if column.is_next_present() {
                     str_value = match column.provider.value(i) {
+                        Value::Bool(value) => value.to_string(),
                         Value::Int32(value) => value.to_string(),
                         Value::String(value) => value,
                         Value::Date(value) => value.to_string(),
@@ -79,6 +80,7 @@ mod tests {
     use crate::config::{Column, Config, Info, OutputType};
     use crate::options::presence;
     use crate::providers::increment::integer::IncrementIntegerProvider;
+    use crate::providers::random::bool::BoolProvider;
     use crate::providers::random::date::date::DateProvider;
     use crate::providers::random::string::alphanumeric::AlphanumericProvider;
 
@@ -149,6 +151,13 @@ mod tests {
             Column {
                 name: "id".to_string(),
                 provider: Box::new(IncrementIntegerProvider { start: 0 }),
+                presence: presence::new_from_yaml(
+                    &YamlLoader::load_from_str("presence: 1").unwrap()[0],
+                ),
+            },
+            Column {
+                name: "bool".to_string(),
+                provider: Box::new(BoolProvider {}),
                 presence: presence::new_from_yaml(
                     &YamlLoader::load_from_str("presence: 1").unwrap()[0],
                 ),
