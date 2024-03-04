@@ -2,6 +2,7 @@ columns:
   - name: id
     provider: Increment.integer
     start: 42
+    step: 2
     presence: 0.8
 
   - name: first_name
