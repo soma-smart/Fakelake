@@ -60,7 +60,10 @@ impl OutputFormat for OutputCsv {
                         Value::Bool(value) => value.to_string(),
                         Value::Int32(value) => value.to_string(),
                         Value::String(value) => value,
-                        Value::Date(value) => value.to_string(),
+                        Value::Date(value, date_format) => value.format(&date_format).to_string(),
+                        Value::Timestamp(value, date_format) => {
+                            value.format(&date_format).to_string()
+                        }
                     };
                 }
                 row.push(str_value);
@@ -82,6 +85,7 @@ mod tests {
     use crate::providers::increment::integer::IncrementIntegerProvider;
     use crate::providers::random::bool::BoolProvider;
     use crate::providers::random::date::date::DateProvider;
+    use crate::providers::random::date::datetime::DatetimeProvider;
     use crate::providers::random::string::alphanumeric::AlphanumericProvider;
 
     use yaml_rust::YamlLoader;
@@ -175,6 +179,17 @@ mod tests {
                     format: "%Y-%m-%d".to_string(),
                     after: 0,
                     before: 10000,
+                }),
+                presence: presence::new_from_yaml(
+                    &YamlLoader::load_from_str("presence: 1").unwrap()[0],
+                ),
+            },
+            Column {
+                name: "id".to_string(),
+                provider: Box::new(DatetimeProvider {
+                    format: "%Y-%m-%d %H:%M:%S".to_string(),
+                    after: 10_000_000,
+                    before: 12_000_000,
                 }),
                 presence: presence::new_from_yaml(
                     &YamlLoader::load_from_str("presence: 1").unwrap()[0],

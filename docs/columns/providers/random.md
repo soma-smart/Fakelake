@@ -27,6 +27,22 @@ Create a random date with:
 
 [Options](../options.md) are also possible.
 
+##### datetime
+```yaml
+ - name: connection
+   provider: Random.Date.datetime
+   format: "%m-%d-%Y %H-%M-%S"
+   after: 02-15-2000 12:01:01
+   before: 07-17-2020 15:06:06
+```
+Create a random datetime with:
+
+- an optional parameter **format**. Default is "%Y-%m-%d %H:%M:%S"
+- an optional parameter **after** as a lower boundary. It should follow the **format** parameter. Default is 1980-01-01 12:00:00
+- an optional parameter **before** as a upper boundary. It should follow the **format** parameter. Default is 2000-01-01 12:00:00
+
+[Options](../options.md) are also possible.
+
 ### Number
 ##### i32
 ```yaml

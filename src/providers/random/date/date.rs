@@ -19,6 +19,7 @@ impl Provider for DateProvider {
     fn value(&self, _: u32) -> Value {
         Value::Date(
             NaiveDate::from_num_days_from_ce_opt(fastrand::i32(self.after..self.before)).unwrap(),
+            self.format.clone(),
         )
     }
     fn new_from_yaml(column: &Yaml) -> DateProvider {
@@ -124,7 +125,7 @@ mod tests {
     fn given_nothing_should_return_parquet_type() {
         let provider: DateProvider = generate_provider(None, None, None);
         match provider.value(0) {
-            Value::Date(_) => (),
+            Value::Date(_, _) => (),
             _ => panic!(),
         };
     }
@@ -237,7 +238,7 @@ mod tests {
 
         for value in 1..100 {
             match provider.value(value) {
-                Value::Date(value) => {
+                Value::Date(value, _) => {
                     assert!(value.num_days_from_ce() >= provider.after);
                     assert!(value.num_days_from_ce() < provider.before);
                 }
@@ -256,7 +257,7 @@ mod tests {
 
         for value in 1..100 {
             match provider.value(value) {
-                Value::Date(value) => {
+                Value::Date(value, _) => {
                     assert_eq!(
                         value.num_days_from_ce(),
                         get_day_since_year0("2020-05-18", DEFAULT_FORMAT)
