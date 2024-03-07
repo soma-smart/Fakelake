@@ -51,7 +51,10 @@ mod tests {
     fn given_str_provider_should_return_utf8_datatype() {
         let column = Column {
             name: "str_column".to_string(),
-            provider: Box::new(AlphanumericProvider {}),
+            provider: Box::new(AlphanumericProvider {
+                min_length: 10,
+                max_length: 11,
+            }),
             presence: new_from_yaml(&YamlLoader::load_from_str("name: test").unwrap()[0]),
         };
         assert_eq!(get_parquet_type_from_column(column), DataType::Utf8);

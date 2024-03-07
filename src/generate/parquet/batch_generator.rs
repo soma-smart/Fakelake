@@ -249,7 +249,10 @@ mod tests {
     fn given_bool_batch_generator_with_wrong_provider_should_panic() {
         let column = Column {
             name: "bool_column".to_string(),
-            provider: Box::new(AlphanumericProvider {}),
+            provider: Box::new(AlphanumericProvider {
+                min_length: 10,
+                max_length: 11,
+            }),
             presence: new_from_yaml(&YamlLoader::load_from_str("name: temp").unwrap()[0]),
         };
         let batch_generator = BoolBatchGenerator { column };
@@ -300,7 +303,10 @@ mod tests {
     fn given_int_batch_generator_with_wrong_provider_should_panic() {
         let column = Column {
             name: "int_column".to_string(),
-            provider: Box::new(AlphanumericProvider {}),
+            provider: Box::new(AlphanumericProvider {
+                min_length: 10,
+                max_length: 11,
+            }),
             presence: new_from_yaml(&YamlLoader::load_from_str("name: temp").unwrap()[0]),
         };
         let batch_generator = IntBatchGenerator { column };
@@ -312,7 +318,10 @@ mod tests {
     fn given_str_provider_should_return_batch_generator() {
         let column = Column {
             name: "str_column".to_string(),
-            provider: Box::new(AlphanumericProvider {}),
+            provider: Box::new(AlphanumericProvider {
+                min_length: 10,
+                max_length: 11,
+            }),
             presence: new_from_yaml(&YamlLoader::load_from_str("name: test").unwrap()[0]),
         };
 
@@ -324,7 +333,10 @@ mod tests {
     fn given_str_batch_generator_should_batch_correctly() {
         let column = Column {
             name: "str_column".to_string(),
-            provider: Box::new(AlphanumericProvider {}),
+            provider: Box::new(AlphanumericProvider {
+                min_length: 10,
+                max_length: 11,
+            }),
             presence: new_from_yaml(&YamlLoader::load_from_str("name: test").unwrap()[0]),
         };
         let batch_generator = StrBatchGenerator { column };
@@ -337,7 +349,10 @@ mod tests {
     fn given_str_batch_generator_with_presence_should_batch_correctly() {
         let column = Column {
             name: "str_column".to_string(),
-            provider: Box::new(AlphanumericProvider {}),
+            provider: Box::new(AlphanumericProvider {
+                min_length: 10,
+                max_length: 11,
+            }),
             presence: new_from_yaml(&YamlLoader::load_from_str("presence: 0.5").unwrap()[0]),
         };
         let batch_generator = StrBatchGenerator { column };
