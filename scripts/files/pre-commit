@@ -1,0 +1,21 @@
+#!/bin/bash
+
+diff=$(cargo fmt --all -- --check)
+result=$?
+
+if [[ ${result} -ne 0 ]] ; then
+    cat <<\EOF
+There are some code style issues, run `cargo fmt` first.
+EOF
+    exit 1
+fi
+
+diff=$(cargo clippy --all-targets --all-features -- -D warnings)
+result=$?
+
+if [[ ${result} -ne 0 ]] ; then
+    cat <<\EOF
+There are some code style issues, run `cargo clippy` first.
+EOF
+    exit 1
+fi

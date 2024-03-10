@@ -1,0 +1,1 @@
+cp scripts/files/pre-commit .git/hooks/pre-commit
