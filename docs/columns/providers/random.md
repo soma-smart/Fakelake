@@ -63,7 +63,10 @@ Create a random 32 bits integer with:
 ```yaml
  - name: string_code
    provider: Random.String.alphanumeric
+   length: 5..15
 ```
-Create a random string of length 10, with only Alphanumerics characters.
+Create a random string, with only Alphanumerics characters.
+
+- an optional parameter **length** to specify the length of the string. This parameter can be a range `5..15` or a constant `8`. Default is 10.
 
 [Options](../options.md) are also possible.

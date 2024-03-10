@@ -1,3 +1,8 @@
+#[cfg(windows)]
+const FAKELAKE_COMMAND_NAME: &str = "fakelake.exe";
+#[cfg(not(windows))]
+const FAKELAKE_COMMAND_NAME: &str = "fakelake";
+
 #[cfg(test)]
 mod tests {
     use assert_cmd::prelude::*;
@@ -6,13 +11,18 @@ mod tests {
 
     use std::path::Path;
 
+    use crate::FAKELAKE_COMMAND_NAME;
+
     #[test]
     fn given_no_args_should_fail() -> Result<(), Box<dyn std::error::Error>> {
         let mut cmd = Command::cargo_bin("fakelake")?;
 
-        cmd.assert().failure().stderr(predicate::str::contains(
-            "Usage: fakelake.exe [OPTIONS] <COMMAND>",
-        ));
+        cmd.assert()
+            .failure()
+            .stderr(predicate::str::contains(format!(
+                "Usage: {} [OPTIONS] <COMMAND>",
+                FAKELAKE_COMMAND_NAME
+            )));
 
         Ok(())
     }
@@ -24,9 +34,10 @@ mod tests {
         cmd.arg("--help")
             .assert()
             .success()
-            .stdout(predicate::str::contains(
-                "Usage: fakelake.exe [OPTIONS] <COMMAND>",
-            ));
+            .stdout(predicate::str::contains(format!(
+                "Usage: {} [OPTIONS] <COMMAND>",
+                FAKELAKE_COMMAND_NAME
+            )));
 
         Ok(())
     }
@@ -38,9 +49,10 @@ mod tests {
         cmd.arg("generate")
             .assert()
             .failure()
-            .stderr(predicate::str::contains(
-                "Usage: fakelake.exe generate <PATH_TO_CONFIG>",
-            ));
+            .stderr(predicate::str::contains(format!(
+                "Usage: {} generate <PATH_TO_CONFIG>",
+                FAKELAKE_COMMAND_NAME
+            )));
 
         Ok(())
     }
