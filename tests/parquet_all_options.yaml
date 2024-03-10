@@ -26,11 +26,8 @@ columns:
     format: "%Y-%m-%d %H:%M:%S"
     after: 2000-02-15 12:15:00
     before: 2020-07-17 23:11:57
-  
-  - name: code_10
-    provider: Random.String.alphanumeric
 
-  - name: code_20
+  - name: code
     provider: Random.String.alphanumeric
     length: 20
 
@@ -47,6 +44,6 @@ columns:
     max: 100
 
 info:
-  output_name: all_options
+  output_name: parquet_all_options
   output_format: parquet
   rows: 174_957

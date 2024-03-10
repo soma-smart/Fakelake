@@ -110,8 +110,8 @@ $ ./target/release/fakelake --help
 # How to use it
 Generate from one or multiple files
 ```bash
-$ fakelake generate tests/all_options.yaml
-$ fakelake generate tests/all_options.yaml tests/simple_with_info.yaml
+$ fakelake generate tests/parquet_all_options.yaml
+$ fakelake generate tests/parquet_all_options.yaml tests/csv_all_options.yaml
 ```
 <br/>
 The configuration file used contains a list of columns, with a specified <a href="#providers">provider</a> (for the column behavior), as well as some <a href="#options">options</a>.

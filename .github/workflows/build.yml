@@ -8,10 +8,20 @@ on:
 
 jobs:
   build:
+    name: build ${{ matrix.target }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-pc-windows-gnu
+          - target: x86_64-unknown-linux-musl
+          - target: x86_64-apple-darwin
     steps:
     - uses: actions/checkout@v3
     - name: Build release
       run: cargo build --release --verbose
-    - name: Generate tests/all_options.yaml
-      run: target/release/fakelake generate tests/all_options.yaml
+    - name: Generate all formats all options
+      run: |
+        target/release/fakelake generate tests/csv_all_options.yaml
+        target/release/fakelake generate tests/parquet_all_options.yaml
