@@ -41,7 +41,7 @@ mod tests {
     fn given_int_provider_should_return_int_datatype() {
         let column = Column {
             name: "int_column".to_string(),
-            provider: Box::new(IncrementIntegerProvider { start: 0 }),
+            provider: Box::new(IncrementIntegerProvider { start: 0, step: 1 }),
             presence: new_from_yaml(&YamlLoader::load_from_str("name: test").unwrap()[0]),
         };
         assert_eq!(get_parquet_type_from_column(column), DataType::Int32);

@@ -96,7 +96,7 @@ mod tests {
         for _ in 0..nb_columns {
             columns.push(Column {
                 name: "id".to_string(),
-                provider: Box::new(IncrementIntegerProvider { start: 0 }),
+                provider: Box::new(IncrementIntegerProvider { start: 0, step: 1 }),
                 presence: presence::new_from_yaml(
                     &YamlLoader::load_from_str("presence: 1").unwrap()[0],
                 ),
@@ -154,7 +154,7 @@ mod tests {
         let columns = vec![
             Column {
                 name: "id".to_string(),
-                provider: Box::new(IncrementIntegerProvider { start: 0 }),
+                provider: Box::new(IncrementIntegerProvider { start: 0, step: 1 }),
                 presence: presence::new_from_yaml(
                     &YamlLoader::load_from_str("presence: 1").unwrap()[0],
                 ),
