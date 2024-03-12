@@ -58,6 +58,25 @@ columns:
     min: -1000
     max: 1000
 
+  - name: constant_string
+    provider: Constant.string
+    data: my_constant
+    corrupted: 0.0001
+
+  - name: constant_string_list
+    provider: Constant.string
+    data: [15, my_constant, 22.22]
+    corrupted: 0.0001
+
+  - name: constant_string_weighted_list
+    provider: Constant.string
+    data: 
+      - value: 42
+      - value: my_second_constant
+        weight: 8
+      - value: my_third_constant
+    corrupted: 0.0001
+
 info:
   output_name: parquet_all_options
   output_format: parquet
