@@ -1,9 +1,10 @@
 use crate::providers::provider::{Provider, Value};
 
+use log::warn;
 use yaml_rust::Yaml;
 
-const DEFAULT_START: i64 = 0;
-const DEFAULT_STEP: i64 = 1;
+const DEFAULT_START: i32 = 0;
+const DEFAULT_STEP: i32 = 1;
 
 #[derive(Clone)]
 pub struct IncrementIntegerProvider {
@@ -16,8 +17,30 @@ impl Provider for IncrementIntegerProvider {
         Value::Int32(self.start + ((index as i32) * self.step))
     }
     fn new_from_yaml(column: &Yaml) -> IncrementIntegerProvider {
-        let start_option = column["start"].as_i64().unwrap_or(DEFAULT_START) as i32;
-        let step_option = column["step"].as_i64().unwrap_or(DEFAULT_STEP) as i32;
+        let start_yaml = column["start"].as_i64().unwrap_or(DEFAULT_START as i64);
+        let step_yaml = column["step"].as_i64().unwrap_or(DEFAULT_STEP as i64);
+
+        let start_option: i32 = if start_yaml >= i32::MIN as i64 && start_yaml <= i32::MAX as i64 {
+            start_yaml as i32
+        } else {
+            warn!(
+                "Column {} start option should be an i32. {} value is taken.",
+                column["name"].as_str().unwrap(),
+                DEFAULT_START.to_string()
+            );
+            DEFAULT_START
+        };
+
+        let step_option: i32 = if step_yaml >= i32::MIN as i64 && step_yaml <= i32::MAX as i64 {
+            step_yaml as i32
+        } else {
+            warn!(
+                "Column {} step option should be an i32. {} value is taken.",
+                column["name"].as_str().unwrap(),
+                DEFAULT_STEP.to_string()
+            );
+            DEFAULT_STEP
+        };
 
         IncrementIntegerProvider {
             start: start_option,
@@ -63,16 +86,23 @@ mod tests {
     #[test]
     fn given_no_start_and_no_step_in_yaml_should_give_defaults() {
         let provider = generate_provider(None, None);
-        assert_eq!(provider.start, DEFAULT_START as i32);
-        assert_eq!(provider.step, DEFAULT_STEP as i32);
+        assert_eq!(provider.start, DEFAULT_START);
+        assert_eq!(provider.step, DEFAULT_STEP);
     }
 
     #[test]
     fn given_badvalue_for_start_and_step_in_yaml_should_give_defaults() {
         let provider =
             generate_provider(Some("BadValue".to_string()), Some("BadValue".to_string()));
-        assert_eq!(provider.start, DEFAULT_START as i32);
-        assert_eq!(provider.step, DEFAULT_STEP as i32);
+        assert_eq!(provider.start, DEFAULT_START);
+        assert_eq!(provider.step, DEFAULT_STEP);
+    }
+
+    #[test]
+    fn given_i64_for_start_and_step_in_yaml_should_give_defaults() {
+        let provider = generate_provider(Some(i64::MIN.to_string()), Some(i64::MAX.to_string()));
+        assert_eq!(provider.start, DEFAULT_START);
+        assert_eq!(provider.step, DEFAULT_STEP);
     }
 
     #[test]

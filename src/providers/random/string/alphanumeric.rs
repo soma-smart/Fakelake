@@ -133,6 +133,13 @@ mod tests {
         assert_eq!(provider.max_length, 11);
     }
 
+    #[test]
+    fn given_range_too_big_config_should_return_default() {
+        let provider: AlphanumericProvider = generate_provider(Some("20..8..14"));
+        assert_eq!(provider.min_length, 10);
+        assert_eq!(provider.max_length, 11);
+    }
+
     // Validate value calculation
     #[test]
     fn given_index_x_should_return_random_string_of_length_10() {
