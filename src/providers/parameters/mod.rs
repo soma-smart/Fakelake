@@ -5,6 +5,7 @@ pub mod i32;
 pub mod percentage;
 pub mod string;
 pub mod urange;
+pub mod wstring;
 
 use yaml_rust::Yaml;
 
