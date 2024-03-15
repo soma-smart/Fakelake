@@ -1,6 +1,7 @@
 use core::fmt;
-use log::{info, warn};
 use yaml_rust::Yaml;
+
+use crate::providers::parameters::percentage::PercentageParameter;
 
 pub trait ClonePresence {
     fn clone_box(&self) -> Box<dyn Presence>;
@@ -70,32 +71,12 @@ impl Presence for NeverPresent {
 }
 
 pub fn new_from_yaml(column: &Yaml) -> Box<dyn Presence> {
-    let presence_option = column["presence"]
-        .as_f64()
-        .or_else(|| column["presence"].as_i64().map(|i| i as f64));
+    let parameter = PercentageParameter::new(column, "presence", 1.0);
 
-    match presence_option {
-        Some(value) if value < 0.0 => {
-            warn!("Presence is set to Never because {} is below 0", value);
-            Box::new(NeverPresent {})
-        }
-        Some(value) if value > 1.0 => {
-            warn!("Presence is set to Always because {} is above 1", value);
-            Box::new(AlwaysPresent {})
-        }
-        Some(value) if value == 0.0 => {
-            info!("Column will contain only nulls.");
-            Box::new(NeverPresent {})
-        }
-        Some(value) if value == 1.0 => {
-            info!(
-                "Presence set to {} is the same as no presence parameter",
-                value
-            );
-            Box::new(AlwaysPresent {})
-        }
-        Some(value) => Box::new(SometimesPresent { presence: value }),
-        None => Box::new(AlwaysPresent {}),
+    match parameter.value {
+        value if value == 0.0 => Box::new(NeverPresent {}),
+        value if value == 1.0 => Box::new(AlwaysPresent {}),
+        value => Box::new(SometimesPresent { presence: value }),
     }
 }
 
@@ -145,60 +126,16 @@ mod tests {
         false
     }
 
-    // Validate YAML file
-    #[test]
-    fn given_no_presence_should_give_always_present() {
-        let presence = generate_presence(None);
-        assert!(check_always_present(presence));
-    }
-
+    // Validate presence option
     #[test]
     fn given_0_int_presence_should_give_never_present() {
         let presence = generate_presence(Some("0"));
         assert!(check_never_present(presence));
     }
-    #[test]
-    fn given_0_float_presence_should_give_never_present() {
-        let presence = generate_presence(Some("0.0"));
-        assert!(check_never_present(presence));
-    }
-
-    #[test]
-    fn given_less_than_0_int_presence_should_give_never_present() {
-        let presence = generate_presence(Some("-5"));
-        assert!(check_never_present(presence));
-    }
-    #[test]
-    fn given_less_than_0_float_presence_should_give_never_present() {
-        let presence = generate_presence(Some("-5.2"));
-        assert!(check_never_present(presence));
-    }
-
-    #[test]
-    fn given_bad_value_presence_should_give_always_present() {
-        let presence = generate_presence(Some("BadValue"));
-        assert!(check_always_present(presence));
-    }
 
     #[test]
     fn given_1_int_presence_should_give_always_present() {
         let presence = generate_presence(Some("1"));
-        assert!(check_always_present(presence));
-    }
-    #[test]
-    fn given_1_float_presence_should_give_always_present() {
-        let presence = generate_presence(Some("1.0"));
-        assert!(check_always_present(presence));
-    }
-
-    #[test]
-    fn given_more_than_1_int_presence_should_give_always_present() {
-        let presence = generate_presence(Some("12"));
-        assert!(check_always_present(presence));
-    }
-    #[test]
-    fn given_more_than_1_float_presence_should_give_always_present() {
-        let presence = generate_presence(Some("12.6"));
         assert!(check_always_present(presence));
     }
 
@@ -208,7 +145,6 @@ mod tests {
         assert!(check_sometimes_present(presence));
     }
 
-    // Validate presence option
     #[test]
     fn given_always_should_return_true() {
         let presence = AlwaysPresent;
