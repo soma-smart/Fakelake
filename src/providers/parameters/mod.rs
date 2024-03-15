@@ -1,4 +1,5 @@
 pub mod i32;
+pub mod string;
 
 use yaml_rust::Yaml;
 
