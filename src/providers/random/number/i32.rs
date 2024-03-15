@@ -1,3 +1,5 @@
+use crate::providers::parameters::get_column_name;
+use crate::providers::parameters::i32::I32Parameter;
 use crate::providers::provider::{Provider, Value};
 
 use log::warn;
@@ -17,40 +19,25 @@ impl Provider for I32Provider {
         Value::Int32(fastrand::i32(self.min..self.max))
     }
     fn new_from_yaml(column: &Yaml) -> I32Provider {
-        let yaml_min = column["min"].as_i64().unwrap_or(DEFAULT_MIN.into());
-        let yaml_max = column["max"].as_i64().unwrap_or(DEFAULT_MAX.into());
-        let mut param_min: i32 = DEFAULT_MIN;
-        let mut param_max: i32 = DEFAULT_MAX;
+        let yaml_min = I32Parameter::new(column, "min", DEFAULT_MIN).value;
+        let yaml_max = I32Parameter::new(column, "max", DEFAULT_MAX).value;
 
-        if yaml_min >= i32::MIN as i64 && yaml_min <= i32::MAX as i64 {
-            param_min = yaml_min as i32
-        } else {
+        if yaml_min >= yaml_max {
             warn!(
-                "min option is not an i32. Default ({}) is taken.",
-                DEFAULT_MIN
-            )
-        }
-        if yaml_max >= i32::MIN as i64 && yaml_max <= i32::MAX as i64 {
-            param_max = yaml_max as i32
-        } else {
-            warn!(
-                "max option is not an i32. Default ({}) is taken.",
+                "Column {} min is not less or equal to max option. Default are used ([{} and {}[)",
+                get_column_name(column),
+                DEFAULT_MIN,
                 DEFAULT_MAX
-            )
-        }
-
-        if param_min >= param_max {
-            warn!(
-                "min option is not less or equal to max option. Default are used ([{} and {}[)",
-                DEFAULT_MIN, DEFAULT_MAX
             );
-            param_min = DEFAULT_MIN;
-            param_max = DEFAULT_MAX;
-        }
-
-        I32Provider {
-            min: param_min,
-            max: param_max,
+            I32Provider {
+                min: DEFAULT_MIN,
+                max: DEFAULT_MAX,
+            }
+        } else {
+            I32Provider {
+                min: yaml_min,
+                max: yaml_max,
+            }
         }
     }
 }
