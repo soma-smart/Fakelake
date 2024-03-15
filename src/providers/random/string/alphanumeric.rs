@@ -1,11 +1,8 @@
+use crate::providers::parameters::urange::URangeParameter;
 use crate::providers::provider::{Provider, Value};
 use crate::providers::utils::string::random_characters;
 
-use log::warn;
 use yaml_rust::Yaml;
-
-use yaml_rust::Yaml::Integer;
-use yaml_rust::Yaml::String;
 
 const DEFAULT_LENGTH: u32 = 10;
 
@@ -22,46 +19,11 @@ impl Provider for AlphanumericProvider {
         )))
     }
     fn new_from_yaml(column: &Yaml) -> AlphanumericProvider {
-        let yaml_length: Vec<u32> = match &column["length"] {
-            Integer(i) => Some(i.to_string()),
-            String(s) => Some(s.to_string()),
-            _ => None,
-        }
-        .map(|s| {
-            s.split("..")
-                .map(|s: &str| s.trim().parse::<u32>().unwrap_or(DEFAULT_LENGTH))
-                .collect()
-        })
-        .unwrap_or(vec![DEFAULT_LENGTH]);
-
-        let mut param_min_length: u32 = DEFAULT_LENGTH;
-        let mut param_max_length: u32 = DEFAULT_LENGTH + 1;
-
-        match yaml_length.len() {
-            1 => {
-                param_min_length = yaml_length[0];
-                param_max_length = param_min_length + 1;
-            }
-            2 => {
-                if yaml_length[0] < yaml_length[1] {
-                    param_min_length = yaml_length[0];
-                    param_max_length = yaml_length[1];
-                } else {
-                    warn!(
-                        "min range is not less to max ranger. Default are used ([{} and {}[)",
-                        DEFAULT_LENGTH, DEFAULT_LENGTH + 1
-                    )
-                }
-            }
-            _ => warn!(
-                "length option is invalid, must be either an u32 or a ranger u32..u32. Default ({}) is taken.",
-                DEFAULT_LENGTH
-            )
-        }
+        let u_range_parameter = URangeParameter::new(column, "length", DEFAULT_LENGTH);
 
         AlphanumericProvider {
-            min_length: param_min_length,
-            max_length: param_max_length,
+            min_length: u_range_parameter.min,
+            max_length: u_range_parameter.max,
         }
     }
 }
