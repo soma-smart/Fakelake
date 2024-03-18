@@ -236,7 +236,9 @@ mod tests {
         let column = Column {
             name: "bool_column".to_string(),
             provider: Box::new(BoolProvider {}),
-            presence: new_from_yaml(&YamlLoader::load_from_str("presence: 0.5").unwrap()[0]),
+            presence: new_from_yaml(
+                &YamlLoader::load_from_str("name: id\npresence: 0.5").unwrap()[0],
+            ),
         };
         let batch_generator = BoolBatchGenerator { column };
         let arr = batch_generator.batch_array(1000);
@@ -290,7 +292,9 @@ mod tests {
         let column = Column {
             name: "int_column".to_string(),
             provider: Box::new(IncrementIntegerProvider { start: 0, step: 1 }),
-            presence: new_from_yaml(&YamlLoader::load_from_str("presence: 0.5").unwrap()[0]),
+            presence: new_from_yaml(
+                &YamlLoader::load_from_str("name: id\npresence: 0.5").unwrap()[0],
+            ),
         };
         let batch_generator = IntBatchGenerator { column };
         let arr = batch_generator.batch_array(1000);
@@ -353,7 +357,9 @@ mod tests {
                 min_length: 10,
                 max_length: 11,
             }),
-            presence: new_from_yaml(&YamlLoader::load_from_str("presence: 0.5").unwrap()[0]),
+            presence: new_from_yaml(
+                &YamlLoader::load_from_str("name: id\npresence: 0.5").unwrap()[0],
+            ),
         };
         let batch_generator = StrBatchGenerator { column };
         let arr = batch_generator.batch_array(1000);
@@ -416,7 +422,9 @@ mod tests {
                 before: 100,
                 after: 0,
             }),
-            presence: new_from_yaml(&YamlLoader::load_from_str("presence: 0.5").unwrap()[0]),
+            presence: new_from_yaml(
+                &YamlLoader::load_from_str("name: id\npresence: 0.5").unwrap()[0],
+            ),
         };
         let batch_generator = DateBatchGenerator { column };
         let arr = batch_generator.batch_array(1000);
@@ -479,7 +487,9 @@ mod tests {
                 after: 10_000_000,
                 before: 12_000_000,
             }),
-            presence: new_from_yaml(&YamlLoader::load_from_str("presence: 0.5").unwrap()[0]),
+            presence: new_from_yaml(
+                &YamlLoader::load_from_str("name: id\npresence: 0.5").unwrap()[0],
+            ),
         };
         let batch_generator = TimestampBatchGenerator { column };
         let arr = batch_generator.batch_array(1000);

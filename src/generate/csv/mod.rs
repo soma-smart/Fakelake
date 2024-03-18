@@ -98,7 +98,7 @@ mod tests {
                 name: "id".to_string(),
                 provider: Box::new(IncrementIntegerProvider { start: 0, step: 1 }),
                 presence: presence::new_from_yaml(
-                    &YamlLoader::load_from_str("presence: 1").unwrap()[0],
+                    &YamlLoader::load_from_str("name: id\npresence: 1").unwrap()[0],
                 ),
             });
         }
@@ -156,14 +156,14 @@ mod tests {
                 name: "id".to_string(),
                 provider: Box::new(IncrementIntegerProvider { start: 0, step: 1 }),
                 presence: presence::new_from_yaml(
-                    &YamlLoader::load_from_str("presence: 1").unwrap()[0],
+                    &YamlLoader::load_from_str("name: id\npresence: 1").unwrap()[0],
                 ),
             },
             Column {
                 name: "bool".to_string(),
                 provider: Box::new(BoolProvider {}),
                 presence: presence::new_from_yaml(
-                    &YamlLoader::load_from_str("presence: 1").unwrap()[0],
+                    &YamlLoader::load_from_str("name: id\npresence: 1").unwrap()[0],
                 ),
             },
             Column {
@@ -173,7 +173,7 @@ mod tests {
                     max_length: 11,
                 }),
                 presence: presence::new_from_yaml(
-                    &YamlLoader::load_from_str("presence: 1").unwrap()[0],
+                    &YamlLoader::load_from_str("name: id\npresence: 1").unwrap()[0],
                 ),
             },
             Column {
@@ -184,7 +184,7 @@ mod tests {
                     before: 10000,
                 }),
                 presence: presence::new_from_yaml(
-                    &YamlLoader::load_from_str("presence: 1").unwrap()[0],
+                    &YamlLoader::load_from_str("name: id\npresence: 1").unwrap()[0],
                 ),
             },
             Column {
@@ -195,7 +195,7 @@ mod tests {
                     before: 12_000_000,
                 }),
                 presence: presence::new_from_yaml(
-                    &YamlLoader::load_from_str("presence: 1").unwrap()[0],
+                    &YamlLoader::load_from_str("name: id\npresence: 1").unwrap()[0],
                 ),
             },
         ];

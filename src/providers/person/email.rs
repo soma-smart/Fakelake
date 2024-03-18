@@ -1,3 +1,4 @@
+use crate::providers::parameters::string::StringParameter;
 use crate::providers::provider::{Provider, Value};
 use crate::providers::utils::string::random_characters;
 
@@ -18,13 +19,10 @@ impl Provider for EmailProvider {
         Value::String(format!("{}@{}", subject, self.domain))
     }
     fn new_from_yaml(column: &Yaml) -> EmailProvider {
-        let domain_option = column["domain"]
-            .as_str()
-            .unwrap_or(DEFAULT_DOMAIN)
-            .to_string();
+        let domain_parameter = StringParameter::new(column, "domain", DEFAULT_DOMAIN);
 
         EmailProvider {
-            domain: domain_option,
+            domain: domain_parameter.value,
         }
     }
 }

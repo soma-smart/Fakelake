@@ -1,6 +1,6 @@
+use crate::providers::parameters::i32::I32Parameter;
 use crate::providers::provider::{Provider, Value};
 
-use log::warn;
 use yaml_rust::Yaml;
 
 const DEFAULT_START: i32 = 0;
@@ -17,34 +17,12 @@ impl Provider for IncrementIntegerProvider {
         Value::Int32(self.start + ((index as i32) * self.step))
     }
     fn new_from_yaml(column: &Yaml) -> IncrementIntegerProvider {
-        let start_yaml = column["start"].as_i64().unwrap_or(DEFAULT_START as i64);
-        let step_yaml = column["step"].as_i64().unwrap_or(DEFAULT_STEP as i64);
-
-        let start_option: i32 = if start_yaml >= i32::MIN as i64 && start_yaml <= i32::MAX as i64 {
-            start_yaml as i32
-        } else {
-            warn!(
-                "Column {} start option should be an i32. {} value is taken.",
-                column["name"].as_str().unwrap(),
-                DEFAULT_START.to_string()
-            );
-            DEFAULT_START
-        };
-
-        let step_option: i32 = if step_yaml >= i32::MIN as i64 && step_yaml <= i32::MAX as i64 {
-            step_yaml as i32
-        } else {
-            warn!(
-                "Column {} step option should be an i32. {} value is taken.",
-                column["name"].as_str().unwrap(),
-                DEFAULT_STEP.to_string()
-            );
-            DEFAULT_STEP
-        };
+        let start_param = I32Parameter::new(column, "start", DEFAULT_START);
+        let step_param = I32Parameter::new(column, "step", DEFAULT_STEP);
 
         IncrementIntegerProvider {
-            start: start_option,
-            step: step_option,
+            start: start_param.value,
+            step: step_param.value,
         }
     }
 }
@@ -56,7 +34,7 @@ mod tests {
 
     use yaml_rust::YamlLoader;
 
-    fn generate_provider(start: Option<String>, step: Option<String>) -> IncrementIntegerProvider {
+    fn generate_provider(start: Option<&str>, step: Option<&str>) -> IncrementIntegerProvider {
         let yaml_start = match start {
             Some(value) => format!("{}start: {}", "\n", value),
             None => String::new(),
@@ -84,6 +62,13 @@ mod tests {
 
     // Validate YAML file
     #[test]
+    fn given_yaml_should_give_integer_provider() {
+        let provider = generate_provider(Some("10"), Some("2"));
+        assert_eq!(provider.start, 10);
+        assert_eq!(provider.step, 2);
+    }
+
+    #[test]
     fn given_no_start_and_no_step_in_yaml_should_give_defaults() {
         let provider = generate_provider(None, None);
         assert_eq!(provider.start, DEFAULT_START);
@@ -92,15 +77,14 @@ mod tests {
 
     #[test]
     fn given_badvalue_for_start_and_step_in_yaml_should_give_defaults() {
-        let provider =
-            generate_provider(Some("BadValue".to_string()), Some("BadValue".to_string()));
+        let provider = generate_provider(Some("BadValue"), Some("BadValue"));
         assert_eq!(provider.start, DEFAULT_START);
         assert_eq!(provider.step, DEFAULT_STEP);
     }
 
     #[test]
     fn given_i64_for_start_and_step_in_yaml_should_give_defaults() {
-        let provider = generate_provider(Some(i64::MIN.to_string()), Some(i64::MAX.to_string()));
+        let provider = generate_provider(Some(&i64::MIN.to_string()), Some(&i64::MAX.to_string()));
         assert_eq!(provider.start, DEFAULT_START);
         assert_eq!(provider.step, DEFAULT_STEP);
     }
@@ -111,7 +95,7 @@ mod tests {
         let step_to_check = [-10, 0, 1, 3, 20];
         for start in start_to_check {
             for step in step_to_check {
-                let provider = generate_provider(Some(start.to_string()), Some(step.to_string()));
+                let provider = generate_provider(Some(&start.to_string()), Some(&step.to_string()));
                 assert_eq!(provider.start, start);
                 assert_eq!(provider.step, step);
             }
