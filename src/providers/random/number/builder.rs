@@ -1,8 +1,7 @@
 use crate::errors::FakeLakeError;
 use crate::providers::provider::Provider;
 
-use super::f64::F64Provider;
-use super::i32::I32Provider;
+use super::{f64, i32};
 
 use yaml_rust::Yaml;
 
@@ -11,8 +10,8 @@ pub fn get_corresponding_provider(
     column: &Yaml,
 ) -> Result<Box<dyn Provider>, FakeLakeError> {
     match provider_split.next() {
-        Some("i32") => Ok(Box::new(I32Provider::new_from_yaml(column))),
-        Some("f64") => Ok(Box::new(F64Provider::new_from_yaml(column))),
+        Some("f64") => Ok(f64::new_from_yaml(column)),
+        Some("i32") => Ok(i32::new_from_yaml(column)),
         _ => Err(FakeLakeError::BadYAMLFormat("".to_string())),
     }
 }

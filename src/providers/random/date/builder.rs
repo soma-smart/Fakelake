@@ -1,8 +1,8 @@
 use crate::errors::FakeLakeError;
 use crate::providers::provider::Provider;
 
-use super::date::DateProvider;
-use super::datetime::DatetimeProvider;
+use super::date;
+use super::datetime;
 
 use yaml_rust::Yaml;
 
@@ -11,8 +11,8 @@ pub fn get_corresponding_provider(
     column: &Yaml,
 ) -> Result<Box<dyn Provider>, FakeLakeError> {
     match provider_split.next() {
-        Some("date") => Ok(Box::new(DateProvider::new_from_yaml(column))),
-        Some("datetime") => Ok(Box::new(DatetimeProvider::new_from_yaml(column))),
+        Some("date") => Ok(date::new_from_yaml(column)),
+        Some("datetime") => Ok(datetime::new_from_yaml(column)),
         _ => Err(FakeLakeError::BadYAMLFormat("".to_string())),
     }
 }
