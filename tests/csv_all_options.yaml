@@ -2,37 +2,46 @@ columns:
   - name: id
     provider: Increment.integer
     start: 42
+    step: 2
     presence: 0.8
+    corrupted: 0.0001
 
   - name: first_name
     provider: Person.fname
+    corrupted: 0.0001
 
   - name: last_name
     provider: Person.lname
+    corrupted: 0.0001
 
   - name: company_email
     provider: Person.email
     domain: soma-smart.com
+    corrupted: 0.0001
 
   - name: created
     provider: Random.Date.date
     format: "%Y-%m-%d"
     after: 2000-02-15
     before: 2020-07-17
+    corrupted: 0.0001
 
   - name: connection
     provider: Random.Date.datetime
     format: "%Y-%m-%d %H:%M:%S"
     after: 2000-02-15 12:15:00
     before: 2020-07-17 23:11:57
+    corrupted: 0.0001
 
   - name: code
     provider: Random.String.alphanumeric
     length: 20
+    corrupted: 0.0001
 
   - name: code_between_5_and_15
     provider: Random.String.alphanumeric
     length: 5..15
+    corrupted: 0.0001
 
   - name: is_subscribed
     provider: Random.bool
@@ -41,6 +50,7 @@ columns:
     provider: Random.Number.i32
     min: -100
     max: 100
+    corrupted: 0.0001
 
   - name: percentage
     provider: Random.Number.f64
