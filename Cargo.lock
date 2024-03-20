@@ -709,6 +709,7 @@ dependencies = [
  "csv",
  "env_logger",
  "fastrand",
+ "fastrand-contrib",
  "log",
  "mockall",
  "once_cell",
@@ -730,6 +731,15 @@ name = "fastrand"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "25cbce373ec4653f1a01a31e8a5e5ec0c622dc27ff9c4e6606eefef5cbbed4a5"
+
+[[package]]
+name = "fastrand-contrib"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fb6c045880cda8f657f4859baf534963ff0595e2dcce0de5f52dcdf3076c290b"
+dependencies = [
+ "fastrand",
+]
 
 [[package]]
 name = "flatbuffers"

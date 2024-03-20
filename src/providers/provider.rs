@@ -9,6 +9,7 @@ use yaml_rust::Yaml;
 pub enum Value {
     Bool(bool),
     Int32(i32),
+    Float64(f64),
     String(String),
     Date(NaiveDate, String),
     Timestamp(NaiveDateTime, String),
