@@ -44,6 +44,20 @@ Create a random datetime with:
 [Options](../options.md) are also possible.
 
 ### Number
+##### f64
+```yaml
+ - name: percentage
+   provider: Random.Number.f64
+   min: -1000
+   max: 1000.78
+```
+Create a random 64 bits float with:
+
+- an optional parameter **min**. Default is the minimum 64bits float.
+- an optional parameter **max**. Default is the maximum 64bits float.
+
+[Options](../options.md) are also possible.
+
 ##### i32
 ```yaml
  - name: score

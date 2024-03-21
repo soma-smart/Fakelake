@@ -6,6 +6,7 @@ pub fn get_parquet_type_from_column(column: Column) -> DataType {
     match column.provider.value(0) {
         Value::Bool(_) => DataType::Boolean,
         Value::Int32(_) => DataType::Int32,
+        Value::Float64(_) => DataType::Float64,
         Value::String(_) => DataType::Utf8,
         Value::Date(_, _) => DataType::Date32,
         Value::Timestamp(_, _) => DataType::Timestamp(TimeUnit::Second, None),
@@ -18,6 +19,7 @@ mod tests {
 
     use crate::config::Column;
     use crate::options::presence::new_from_yaml;
+    use crate::providers::random::number::f64::F64Provider;
     use crate::providers::{
         increment::integer::IncrementIntegerProvider, random::bool::BoolProvider,
         random::date::date::DateProvider, random::date::datetime::DatetimeProvider,
@@ -45,6 +47,16 @@ mod tests {
             presence: new_from_yaml(&YamlLoader::load_from_str("name: test").unwrap()[0]),
         };
         assert_eq!(get_parquet_type_from_column(column), DataType::Int32);
+    }
+
+    #[test]
+    fn given_float_provider_should_return_float_datatype() {
+        let column = Column {
+            name: "float_column".to_string(),
+            provider: Box::new(F64Provider { min: 0.0, max: 1.0 }),
+            presence: new_from_yaml(&YamlLoader::load_from_str("name: test").unwrap()[0]),
+        };
+        assert_eq!(get_parquet_type_from_column(column), DataType::Float64);
     }
 
     #[test]

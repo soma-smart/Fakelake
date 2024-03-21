@@ -59,6 +59,7 @@ impl OutputFormat for OutputCsv {
                     str_value = match column.provider.value(i) {
                         Value::Bool(value) => value.to_string(),
                         Value::Int32(value) => value.to_string(),
+                        Value::Float64(value) => value.to_string(),
                         Value::String(value) => value,
                         Value::Date(value, date_format) => value.format(&date_format).to_string(),
                         Value::Timestamp(value, date_format) => {
@@ -86,6 +87,7 @@ mod tests {
     use crate::providers::random::bool::BoolProvider;
     use crate::providers::random::date::date::DateProvider;
     use crate::providers::random::date::datetime::DatetimeProvider;
+    use crate::providers::random::number::f64::F64Provider;
     use crate::providers::random::string::alphanumeric::AlphanumericProvider;
 
     use yaml_rust::YamlLoader;
@@ -162,6 +164,13 @@ mod tests {
             Column {
                 name: "bool".to_string(),
                 provider: Box::new(BoolProvider {}),
+                presence: presence::new_from_yaml(
+                    &YamlLoader::load_from_str("name: id\npresence: 1").unwrap()[0],
+                ),
+            },
+            Column {
+                name: "id".to_string(),
+                provider: Box::new(F64Provider { min: 0.0, max: 1.1 }),
                 presence: presence::new_from_yaml(
                     &YamlLoader::load_from_str("name: id\npresence: 1").unwrap()[0],
                 ),
