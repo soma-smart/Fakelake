@@ -13,3 +13,5 @@ It starts from the optional parameter **start**. Default is 0.
 It increments by the optional parameter **step**. Default is 1.
  
 [Options](../options.md) are also possible.
+
+In this case, corrupted means random int32.

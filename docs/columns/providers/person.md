@@ -14,6 +14,8 @@ Create a random email with:
 
 [Options](../options.md) are also possible.
 
+In this case, corrupted means random string not in UTF8 format.
+
 ### fname
 ```yaml
  - name: first_name_in_top_1000_fr
@@ -23,6 +25,8 @@ Returns a random first name from top 1000 french list.
 
 [Options](../options.md) are also possible.
 
+In this case, corrupted means random string not in UTF8 format.
+
 ### lname
 ```yaml
  - name: last_name_in_top_1000_fr
@@ -31,3 +35,5 @@ Returns a random first name from top 1000 french list.
 Returns a random last name from top 1000 french list.
 
 [Options](../options.md) are also possible.
+
+In this case, corrupted means random string not in UTF8 format.

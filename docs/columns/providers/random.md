@@ -10,6 +10,8 @@ Create a random boolean.
 
 [Options](../options.md) are also possible.
 
+In this case, corrupted does not change anything as it is still a boolean.
+
 ### Date
 ##### date
 ```yaml
@@ -27,6 +29,8 @@ Create a random date with:
 
 [Options](../options.md) are also possible.
 
+In this case, corrupted means random date without using the parameters as limit.
+
 ##### datetime
 ```yaml
  - name: connection
@@ -42,6 +46,8 @@ Create a random datetime with:
 - an optional parameter **before** as a upper boundary. It should follow the **format** parameter. Default is 2000-01-01 12:00:00
 
 [Options](../options.md) are also possible.
+
+In this case, corrupted means random datetime without using the parameters as limit.
 
 ### Number
 ##### f64
@@ -72,6 +78,8 @@ Create a random 32 bits integer with:
 
 [Options](../options.md) are also possible.
 
+In this case, corrupted means random int32 without using the parameters as limit.
+
 ### String
 ##### alphanumeric
 ```yaml
@@ -84,3 +92,5 @@ Create a random string, with only Alphanumerics characters.
 - an optional parameter **length** to specify the length of the string. This parameter can be a range `5..15` or a constant `8`. Default is 10.
 
 [Options](../options.md) are also possible.
+
+In this case, corrupted means random string not in UTF8 format.

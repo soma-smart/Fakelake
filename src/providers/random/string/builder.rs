@@ -1,7 +1,7 @@
 use crate::errors::FakeLakeError;
 use crate::providers::provider::Provider;
 
-use super::alphanumeric::AlphanumericProvider;
+use super::alphanumeric;
 
 use yaml_rust::Yaml;
 
@@ -10,7 +10,7 @@ pub fn get_corresponding_provider(
     column: &Yaml,
 ) -> Result<Box<dyn Provider>, FakeLakeError> {
     match provider_split.next() {
-        Some("alphanumeric") => Ok(Box::new(AlphanumericProvider::new_from_yaml(column))),
+        Some("alphanumeric") => Ok(alphanumeric::new_from_yaml(column)),
         _ => Err(FakeLakeError::BadYAMLFormat("".to_string())),
     }
 }

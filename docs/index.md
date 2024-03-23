@@ -17,6 +17,7 @@ columns:
   - name: company_email
     provider: Person.email
     domain: soma-smart.com
+    corrupted: 0.0001
 
   - name: created
     provider: Random.Date.date

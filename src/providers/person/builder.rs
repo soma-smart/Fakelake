@@ -1,9 +1,9 @@
 use crate::errors::FakeLakeError;
 use crate::providers::provider::Provider;
 
-use super::email::EmailProvider;
-use super::fname::FirstNameProvider;
-use super::lname::LastNameProvider;
+use super::email;
+use super::fname;
+use super::lname;
 
 use yaml_rust::Yaml;
 
@@ -12,9 +12,9 @@ pub fn get_corresponding_provider(
     column: &Yaml,
 ) -> Result<Box<dyn Provider>, FakeLakeError> {
     match provider_split.next() {
-        Some("email") => Ok(Box::new(EmailProvider::new_from_yaml(column))),
-        Some("fname") => Ok(Box::new(FirstNameProvider::new_from_yaml(column))),
-        Some("lname") => Ok(Box::new(LastNameProvider::new_from_yaml(column))),
+        Some("email") => Ok(email::new_from_yaml(column)),
+        Some("fname") => Ok(fname::new_from_yaml(column)),
+        Some("lname") => Ok(lname::new_from_yaml(column)),
         _ => Err(FakeLakeError::BadYAMLFormat("".to_string())),
     }
 }

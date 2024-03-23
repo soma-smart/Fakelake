@@ -1,7 +1,7 @@
 use crate::errors::FakeLakeError;
 use crate::providers::provider::Provider;
 
-use super::integer::IncrementIntegerProvider;
+use super::integer;
 
 use yaml_rust::Yaml;
 
@@ -10,7 +10,7 @@ pub fn get_corresponding_provider(
     column: &Yaml,
 ) -> Result<Box<dyn Provider>, FakeLakeError> {
     match provider_split.next() {
-        Some("integer") => Ok(Box::new(IncrementIntegerProvider::new_from_yaml(column))),
+        Some("integer") => Ok(integer::new_from_yaml(column)),
         _ => Err(FakeLakeError::BadYAMLFormat("".to_string())),
     }
 }

@@ -10,7 +10,7 @@ pub fn get_corresponding_provider(
     column: &Yaml,
 ) -> Result<Box<dyn Provider>, FakeLakeError> {
     match provider_split.next() {
-        Some("bool") => Ok(Box::new(bool::BoolProvider::new_from_yaml(column))),
+        Some("bool") => Ok(bool::new_from_yaml(column)),
         Some("date") => date::builder::get_corresponding_provider(provider_split, column),
         Some("number") => number::builder::get_corresponding_provider(provider_split, column),
         Some("string") => string::builder::get_corresponding_provider(provider_split, column),

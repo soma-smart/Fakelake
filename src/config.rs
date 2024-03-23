@@ -5,7 +5,7 @@ use yaml_rust::{Yaml, YamlLoader};
 
 use crate::errors::FakeLakeError;
 use crate::options::presence;
-use crate::providers::provider::{Provider, ProviderBuilder};
+use crate::providers::provider::{CorruptedProvider, Provider, ProviderBuilder};
 
 #[derive(Debug)]
 pub struct Config {
@@ -106,7 +106,7 @@ impl Column {
 
             let provider: Box<dyn Provider> =
                 match ProviderBuilder::get_corresponding_provider(provider, column) {
-                    Ok(value) => value,
+                    Ok(value) => CorruptedProvider::new_from_yaml(column, value),
                     Err(e) => return Err(FakeLakeError::BadYAMLFormat(e.to_string())),
                 };
 
@@ -226,7 +226,6 @@ mod tests {
 
     use mockall::predicate::*;
     use mockall::*;
-    use yaml_rust::Yaml;
 
     #[derive(Clone)]
     struct TestProvider;
@@ -239,7 +238,7 @@ mod tests {
 
         impl Provider for TestProvider {
             fn value(&self, index: u32) -> Value;
-            fn new_from_yaml(column: &Yaml) -> Self where Self: Sized;
+            fn corrupted_value(&self, index: u32) -> Value;
         }
     }
 

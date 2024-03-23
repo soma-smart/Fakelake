@@ -8,6 +8,9 @@ const DEFAULT_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 const DEFAULT_AFTER: &str = "1980-01-01 12:00:00";
 const DEFAULT_BEFORE: &str = "2000-01-01 12:00:00";
 
+const MIN_TIMESTAMP: NaiveDateTime = NaiveDateTime::MIN;
+const MAX_TIMESTAMP: NaiveDateTime = NaiveDateTime::MAX;
+
 #[derive(Clone)]
 pub struct DatetimeProvider {
     pub format: String,
@@ -22,16 +25,27 @@ impl Provider for DatetimeProvider {
             self.format.clone(),
         )
     }
-    fn new_from_yaml(column: &Yaml) -> DatetimeProvider {
-        let date_time_parameter =
-            DatetimeParameter::new(column, DEFAULT_FORMAT, DEFAULT_AFTER, DEFAULT_BEFORE);
-
-        DatetimeProvider {
-            format: date_time_parameter.format,
-            after: date_time_parameter.after,
-            before: date_time_parameter.before,
-        }
+    fn corrupted_value(&self, _: u32) -> Value {
+        Value::Timestamp(
+            NaiveDateTime::from_timestamp_opt(
+                fastrand::i64(MIN_TIMESTAMP.timestamp()..MAX_TIMESTAMP.timestamp()),
+                0,
+            )
+            .unwrap(),
+            self.format.clone(),
+        )
     }
+}
+
+pub fn new_from_yaml(column: &Yaml) -> Box<DatetimeProvider> {
+    let date_time_parameter =
+        DatetimeParameter::new(column, DEFAULT_FORMAT, DEFAULT_AFTER, DEFAULT_BEFORE);
+
+    Box::new(DatetimeProvider {
+        format: date_time_parameter.format,
+        after: date_time_parameter.after,
+        before: date_time_parameter.before,
+    })
 }
 
 #[cfg(test)]
@@ -46,7 +60,7 @@ mod tests {
         format: Option<&str>,
         after: Option<&str>,
         before: Option<&str>,
-    ) -> DatetimeProvider {
+    ) -> Box<DatetimeProvider> {
         let yaml_format = match format {
             Some(value) => format!("{}format: \"{}\"", "\n", value),
             None => String::new(),
@@ -63,7 +77,7 @@ mod tests {
         let yaml_str = format!("name: id{}{}{}", yaml_format, yaml_after, yaml_before);
 
         let yaml = YamlLoader::load_from_str(yaml_str.as_str()).unwrap();
-        DatetimeProvider::new_from_yaml(&yaml[0])
+        super::new_from_yaml(&yaml[0])
     }
 
     fn get_seconds_since_day0(date: &str, format: &str) -> i64 {
@@ -148,5 +162,27 @@ mod tests {
                 _ => panic!("Wrong type"),
             }
         }
+    }
+
+    #[test]
+    fn given_provider_should_corrupted_return_random_date() {
+        let provider = DatetimeProvider {
+            format: DEFAULT_FORMAT.to_string(),
+            after: get_seconds_since_day0(DEFAULT_AFTER, DEFAULT_FORMAT),
+            before: get_seconds_since_day0(DEFAULT_BEFORE, DEFAULT_FORMAT),
+        };
+
+        let mut count_random_datetime = 0;
+        for value in 1..100 {
+            match provider.corrupted_value(value) {
+                Value::Timestamp(value, _) => {
+                    if value.timestamp() < provider.after || value.timestamp() > provider.before {
+                        count_random_datetime += 1
+                    }
+                }
+                _ => panic!("Wrong type"),
+            }
+        }
+        assert!(count_random_datetime >= 99)
     }
 }
