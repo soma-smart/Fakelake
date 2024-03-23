@@ -1,10 +1,12 @@
 pub mod csv;
+pub mod json;
 pub mod output_format;
 pub mod parquet;
 
 use crate::config;
 use crate::errors::FakeLakeError;
 use csv::OutputCsv;
+use json::OutputJson;
 use output_format::OutputFormat;
 use parquet::OutputParquet;
 
@@ -56,6 +58,7 @@ fn get_corresponding_output(config: &config::Config) -> Box<dyn OutputFormat> {
             Some(output_format) => match output_format {
                 config::OutputType::Parquet() => Box::new(OutputParquet),
                 config::OutputType::Csv(value) => Box::new(OutputCsv::new(*value)),
+                config::OutputType::Json(value) => Box::new(OutputJson::new(*value)),
             },
             None => wrong_format(),
         },

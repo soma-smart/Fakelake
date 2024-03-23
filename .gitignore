@@ -6,6 +6,7 @@
 /target
 *.parquet
 *.csv
+*.json
 /site
 
 # Coverage
