@@ -710,6 +710,7 @@ dependencies = [
  "env_logger",
  "fastrand",
  "fastrand-contrib",
+ "linked-hash-map",
  "log",
  "mockall",
  "once_cell",

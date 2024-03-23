@@ -54,6 +54,9 @@ impl ProviderBuilder {
         let mut provider_split = lowercased.split('.');
 
         match provider_split.next() {
+            Some("constant") => {
+                providers::constant::builder::get_corresponding_provider(provider_split, column)
+            }
             Some("increment") => {
                 providers::increment::builder::get_corresponding_provider(provider_split, column)
             }
@@ -79,38 +82,21 @@ mod tests {
     use yaml_rust::YamlLoader;
 
     #[test]
-    fn given_increment_should_return_provider() {
-        let provider_name = "increment.integer";
-        let yaml_str = format!("name: name{}provider: {}", '\n', provider_name);
-        let column = &YamlLoader::load_from_str(yaml_str.as_str()).unwrap()[0];
+    fn given_valid_provider_should_return_provider() {
+        let provider_names = [
+            "constant.string",
+            "increment.integer",
+            "person.email",
+            "random.string.alphanumeric",
+        ];
+        for provider_name in provider_names {
+            let yaml_str = format!("name: name{}provider: {}", '\n', provider_name);
+            let column = &YamlLoader::load_from_str(yaml_str.as_str()).unwrap()[0];
 
-        match ProviderBuilder::get_corresponding_provider(provider_name, column) {
-            Ok(_) => (),
-            _ => panic!(),
-        }
-    }
-
-    #[test]
-    fn given_person_should_return_provider() {
-        let provider_name = "person.email";
-        let yaml_str = format!("name: name{}provider: {}", '\n', provider_name);
-        let column = &YamlLoader::load_from_str(yaml_str.as_str()).unwrap()[0];
-
-        match ProviderBuilder::get_corresponding_provider(provider_name, column) {
-            Ok(_) => (),
-            _ => panic!(),
-        }
-    }
-
-    #[test]
-    fn given_random_should_return_provider() {
-        let provider_name = "random.string.alphanumeric";
-        let yaml_str = format!("name: name{}provider: {}", '\n', provider_name);
-        let column = &YamlLoader::load_from_str(yaml_str.as_str()).unwrap()[0];
-
-        match ProviderBuilder::get_corresponding_provider(provider_name, column) {
-            Ok(_) => (),
-            _ => panic!(),
+            match ProviderBuilder::get_corresponding_provider(provider_name, column) {
+                Ok(_) => (),
+                _ => panic!(),
+            }
         }
     }
 
