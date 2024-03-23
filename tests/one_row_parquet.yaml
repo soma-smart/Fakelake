@@ -3,6 +3,6 @@ columns:
     provider: Increment.integer
 
 info:
-  output_name: one_row
+  output_name: target/test_generated/one_row
   output_format: parquet
   rows: 1

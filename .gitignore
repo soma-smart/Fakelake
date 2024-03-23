@@ -4,8 +4,6 @@
 
 # Generated
 /target
-*.parquet
-*.csv
 /site
 
 # Coverage

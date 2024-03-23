@@ -6,6 +6,7 @@ pub enum FakeLakeError {
     BadYAMLFormat(String),
     IOError(io::Error),
     CSVError(csv::Error),
+    JSONError(serde_json::Error),
 }
 
 #[cfg(not(tarpaulin_include))]

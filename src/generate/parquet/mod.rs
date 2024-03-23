@@ -99,12 +99,20 @@ fn get_schema_from_config(config: &Config) -> Schema {
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
     use super::*;
     use crate::config::{Column, Config, Info};
     use crate::options::presence;
     use crate::providers::increment::integer::IncrementIntegerProvider;
 
+    use ctor::ctor;
     use yaml_rust::YamlLoader;
+
+    #[ctor]
+    fn init() {
+        fs::create_dir_all("target/test_generated").ok();
+    }
 
     #[test]
     fn given_config_get_schema() {
@@ -148,7 +156,7 @@ mod tests {
         let config = Config {
             columns,
             info: Some(Info {
-                output_name: Some("not_default_file".to_string()),
+                output_name: Some("target/test_generated/not_default_file".to_string()),
                 output_format: None,
                 rows: None,
             }),
@@ -167,7 +175,7 @@ mod tests {
         let config = Config {
             columns,
             info: Some(Info {
-                output_name: Some("not_default_file".to_string()),
+                output_name: Some("target/test_generated/not_default_file".to_string()),
                 output_format: None,
                 rows: None,
             }),
