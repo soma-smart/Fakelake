@@ -126,6 +126,7 @@ impl Column {
 pub enum OutputType {
     Parquet(),
     Csv(u8),
+    Json(bool),
 }
 
 #[derive(Debug)]
@@ -172,6 +173,17 @@ impl Info {
                     _ => b',',
                 };
                 Some(OutputType::Csv(delimiter))
+            }
+            Some(value) if value == "json" => {
+                let wrap_up = match section_info["wrap_up"] {
+                    Yaml::Boolean(value) => value,
+                    Yaml::BadValue => false,
+                    _ => {
+                        warn!("Wrap up should be a bool. Default value 'false' is taken.");
+                        false
+                    }
+                };
+                Some(OutputType::Json(wrap_up))
             }
             _ => None,
         };
@@ -504,6 +516,50 @@ mod tests {
         let info = &info.unwrap();
         assert_eq!(info.output_name, None);
         assert_eq!(info.output_format, Some(OutputType::Csv(b',')));
+        assert_eq!(info.rows, None);
+    }
+
+    #[test]
+    fn given_json_format_should_use_default_wrap_up() {
+        let yaml = "
+        info:
+            output_format: json
+        ";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+        let info = &info.unwrap();
+        assert_eq!(info.output_name, None);
+        assert_eq!(info.output_format, Some(OutputType::Json(false)));
+        assert_eq!(info.rows, None);
+    }
+
+    #[test]
+    fn given_json_format_with_custom_wrap_up_should_use_custom_wrap_up() {
+        let yaml = "
+        info:
+            output_format: json
+            wrap_up: true
+        ";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+        let info = &info.unwrap();
+        assert_eq!(info.output_name, None);
+        assert_eq!(info.output_format, Some(OutputType::Json(true)));
+        assert_eq!(info.rows, None);
+    }
+
+    #[test]
+    fn given_json_format_with_invalid_wrap_up_should_default_wrap_up() {
+        let yaml = "
+        info:
+            output_format: json
+            wrap_up: invalid
+        ";
+        let info = generate_info_from_yaml(yaml);
+        expecting_ok(&info);
+        let info = &info.unwrap();
+        assert_eq!(info.output_name, None);
+        assert_eq!(info.output_format, Some(OutputType::Json(false)));
         assert_eq!(info.rows, None);
     }
 
