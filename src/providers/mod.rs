@@ -1,5 +1,6 @@
 pub mod provider;
 
+pub mod generic;
 pub mod parameters;
 pub mod utils;
 

@@ -72,6 +72,11 @@ columns:
       - value: my_second_constant
         weight: 8
       - value: my_third_constant
+  
+  - name: external_data
+    provider: Constant.external
+    path: tests/example.txt
+    corrupted: 0.0001
 
 info:
   output_name: target/csv_all_options

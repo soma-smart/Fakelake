@@ -1,5 +1,6 @@
 use yaml_rust::Yaml;
 
+use crate::providers::generic::lstring::ListStringProvider;
 use crate::providers::parameters::wstring::WStringParameter;
 use crate::providers::provider::{Provider, Value};
 use crate::providers::utils::string::random_alphanumeric;
@@ -14,22 +15,6 @@ pub struct ConstantStringProvider {
 impl Provider for ConstantStringProvider {
     fn value(&self, _: u32) -> Value {
         Value::String(self.data.to_string())
-    }
-
-    fn corrupted_value(&self, _: u32) -> Value {
-        Value::String(random_alphanumeric(10))
-    }
-}
-
-#[derive(Clone)]
-pub struct ListStringProvider {
-    data: Vec<String>,
-}
-
-impl Provider for ListStringProvider {
-    fn value(&self, _: u32) -> Value {
-        let index = fastrand::usize(..self.data.len());
-        Value::String(self.data[index].to_string())
     }
 
     fn corrupted_value(&self, _: u32) -> Value {
@@ -94,9 +79,9 @@ pub fn new_from_yaml(column: &Yaml) -> Box<dyn Provider> {
     } else {
         let w = WeightedListStringProvider::new(data_option);
         if w.sum == length {
-            Box::new(ListStringProvider {
-                data: w.data.into_iter().map(|v| v.value).collect(),
-            })
+            Box::new(ListStringProvider::new(
+                w.data.into_iter().map(|v| v.value).collect(),
+            ))
         } else {
             Box::new(w)
         }
@@ -166,14 +151,12 @@ mod tests {
             "voila".to_string(),
             "my_value".to_string(),
         ];
-        let provider: ListStringProvider = ListStringProvider {
-            data: vec![
-                "constant".to_string(),
-                "my_data".to_string(),
-                "voila".to_string(),
-                "my_value".to_string(),
-            ],
-        };
+        let provider: ListStringProvider = ListStringProvider::new(vec![
+            "constant".to_string(),
+            "my_data".to_string(),
+            "voila".to_string(),
+            "my_value".to_string(),
+        ]);
         for i in 0..10 {
             match provider.value(i) {
                 Value::String(s) => assert!(input.contains(&s)),

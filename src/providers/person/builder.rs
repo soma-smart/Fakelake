@@ -1,11 +1,21 @@
 use crate::errors::FakeLakeError;
+use crate::providers::constant::external;
 use crate::providers::provider::Provider;
 
 use super::email;
-use super::fname;
-use super::lname;
 
+use once_cell::sync::Lazy;
 use yaml_rust::Yaml;
+
+static FIRST_NAMES: Lazy<Vec<String>> = Lazy::new(|| {
+    let raw_first_names = include_str!("../../../static/first_name_fr.txt");
+    raw_first_names.lines().map(|v| v.to_string()).collect()
+});
+
+static LAST_NAMES: Lazy<Vec<String>> = Lazy::new(|| {
+    let raw_larst_names = include_str!("../../../static/last_name_fr.txt");
+    raw_larst_names.lines().map(|v| v.to_string()).collect()
+});
 
 pub fn get_corresponding_provider(
     mut provider_split: std::str::Split<'_, char>,
@@ -13,15 +23,17 @@ pub fn get_corresponding_provider(
 ) -> Result<Box<dyn Provider>, FakeLakeError> {
     match provider_split.next() {
         Some("email") => Ok(email::new_from_yaml(column)),
-        Some("fname") => Ok(fname::new_from_yaml(column)),
-        Some("lname") => Ok(lname::new_from_yaml(column)),
+        Some("fname") => Ok(external::new(FIRST_NAMES.to_vec())),
+        Some("lname") => Ok(external::new(LAST_NAMES.to_vec())),
         _ => Err(FakeLakeError::BadYAMLFormat("".to_string())),
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::get_corresponding_provider;
+    use crate::providers::person::builder::LAST_NAMES;
+
+    use super::{get_corresponding_provider, FIRST_NAMES};
 
     use yaml_rust::YamlLoader;
 
@@ -75,5 +87,11 @@ mod tests {
             Err(_) => (),
             _ => panic!(),
         }
+    }
+
+    #[test]
+    fn given_name_files_should_be_loaded() {
+        assert_eq!(13387, FIRST_NAMES.len());
+        assert_eq!(95590, LAST_NAMES.len());
     }
 }
