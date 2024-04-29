@@ -7,6 +7,6 @@ columns:
     presence: 0.5
 
 info:
-  output_name: simple-renamed
+  output_name: target/test_generated/simple-renamed
   output_format: parquet
   rows: 1_234_567

@@ -27,6 +27,7 @@ pub fn random_characters(n: u32) -> String {
 mod tests {
     use super::{random_alphanumeric, random_characters};
     use regex::Regex;
+    use std::convert::TryInto;
 
     fn validate_string(calculated_value: String, length: u32) {
         let pattern = format!(r"^[a-zA-Z0-9]{{{}}}$", length);
@@ -59,7 +60,10 @@ mod tests {
         let values_to_check = [4, 27, 50];
         for length in values_to_check {
             let generated_string = random_characters(length);
-            assert_eq!(generated_string.chars().count(), length.try_into().unwrap());
+            assert_eq!(
+                generated_string.chars().count(),
+                TryInto::<usize>::try_into(length).unwrap()
+            );
         }
     }
 }

@@ -2,56 +2,45 @@ columns:
   - name: id
     provider: Increment.integer
     start: 42
-    step: 2
     presence: 0.8
-    corrupted: 0.0001
 
   - name: first_name
     provider: Person.fname
-    corrupted: 0.0001
 
   - name: last_name
     provider: Person.lname
-    corrupted: 0.0001
 
   - name: company_email
     provider: Person.email
     domain: soma-smart.com
-    corrupted: 0.0001
 
   - name: created
     provider: Random.Date.date
     format: "%Y-%m-%d"
     after: 2000-02-15
     before: 2020-07-17
-    corrupted: 0.0001
 
   - name: connection
     provider: Random.Date.datetime
     format: "%Y-%m-%d %H:%M:%S"
     after: 2000-02-15 12:15:00
     before: 2020-07-17 23:11:57
-    corrupted: 0.0001
 
   - name: code
     provider: Random.String.alphanumeric
     length: 20
-    corrupted: 0.0001
 
   - name: code_between_5_and_15
     provider: Random.String.alphanumeric
     length: 5..15
-    corrupted: 0.0001
 
   - name: is_subscribed
     provider: Random.bool
-    corrupted: 0.0001
 
   - name: score
     provider: Random.Number.i32
     min: -100
     max: 100
-    corrupted: 0.0001
 
   - name: percentage
     provider: Random.Number.f64
@@ -61,12 +50,10 @@ columns:
   - name: constant_string
     provider: Constant.string
     data: my_constant
-    corrupted: 0.0001
 
   - name: constant_string_list
     provider: Constant.string
     data: [15, my_constant, 22.22]
-    corrupted: 0.0001
 
   - name: constant_string_weighted_list
     provider: Constant.string
@@ -75,9 +62,8 @@ columns:
       - value: my_second_constant
         weight: 8
       - value: my_third_constant
-    corrupted: 0.0001
 
 info:
-  output_name: target/parquet_all_options
-  output_format: parquet
+  output_name: target/json_all_options
+  output_format: json
   rows: 174_957

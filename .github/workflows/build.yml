@@ -24,4 +24,5 @@ jobs:
     - name: Generate all formats all options
       run: |
         target/release/fakelake generate tests/csv_all_options.yaml
+        target/release/fakelake generate tests/json_all_options.yaml
         target/release/fakelake generate tests/parquet_all_options.yaml

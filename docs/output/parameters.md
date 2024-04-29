@@ -24,6 +24,16 @@ info:
 ```
 Default delimiter is ',' but you can specify any character.
 
+##### JSON
+```yaml
+info:
+ output_format: json
+ wrap_up: false
+```
+By default, wrap_up is set to false.  
+When wrap_up is set to false, each line into the result file is a json object but the whole file is not a valid json.  
+When wrap_up is set to true, the whole file is a valid json, rows are wrapped up into an array.
+
 ### Rows
 To choose the number of rows in the generated file, use rows.
 ```yaml

@@ -74,6 +74,6 @@ columns:
       - value: my_third_constant
 
 info:
-  output_name: csv_all_options
+  output_name: target/csv_all_options
   output_format: csv
   rows: 174_957
