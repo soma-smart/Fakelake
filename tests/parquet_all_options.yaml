@@ -77,6 +77,11 @@ columns:
       - value: my_third_constant
     corrupted: 0.0001
 
+  - name: external_data
+    provider: Constant.external
+    path: tests/example.txt
+    corrupted: 0.0001
+
 info:
   output_name: target/parquet_all_options
   output_format: parquet

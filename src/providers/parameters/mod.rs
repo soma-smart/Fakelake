@@ -1,6 +1,7 @@
 pub mod date;
 pub mod datetime;
 pub mod f64;
+pub mod file;
 pub mod i32;
 pub mod percentage;
 pub mod string;
