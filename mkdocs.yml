@@ -17,6 +17,7 @@ nav:
     - 'usage/generate.md'
   - 'Columns':
     - 'Providers':
+      - 'columns/providers/constant.md'
       - 'columns/providers/increment.md'
       - 'columns/providers/person.md'
       - 'columns/providers/random.md'
