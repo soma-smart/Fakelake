@@ -156,15 +156,15 @@ struct DateBatchGenerator {
 }
 impl ParquetBatchGenerator for DateBatchGenerator {
     fn batch_array(&self, rows_to_generate: u32) -> Arc<dyn Array> {
-        let epoch = NaiveDate::parse_from_str("1970-01-01", "%Y-%m-%d").unwrap();
+        let epoch_days = NaiveDate::from_ymd_opt(1970, 1, 1)
+            .unwrap()
+            .num_days_from_ce();
 
         let mut vec: Vec<Option<i32>> = Vec::new();
         for i in 0..rows_to_generate {
             if self.column.is_next_present() {
                 match self.column.provider.value(i) {
-                    Value::Date(value, _) => {
-                        vec.push(Some(value.num_days_from_ce() - epoch.num_days_from_ce()))
-                    }
+                    Value::Date(value, _) => vec.push(Some(value.num_days_from_ce() + epoch_days)),
                     _ => panic!("Wrong provider type"),
                 }
             } else {

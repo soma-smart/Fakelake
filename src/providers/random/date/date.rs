@@ -2,14 +2,15 @@ use crate::providers::parameters::date::DateParameter;
 use crate::providers::provider::{Provider, Value};
 
 use chrono::{Datelike, NaiveDate};
+use once_cell::sync::Lazy;
 use yaml_rust::Yaml;
 
 const DEFAULT_FORMAT: &str = "%Y-%m-%d";
 const DEFAULT_AFTER: &str = "1980-01-01";
 const DEFAULT_BEFORE: &str = "2000-01-01";
 
-const MIN_DATE: NaiveDate = NaiveDate::MIN;
-const MAX_DATE: NaiveDate = NaiveDate::MAX;
+static MIN_DATE: Lazy<NaiveDate> = Lazy::new(|| NaiveDate::from_ymd_opt(0, 1, 1).unwrap());
+static MAX_DATE: Lazy<NaiveDate> = Lazy::new(|| NaiveDate::from_ymd_opt(4999, 12, 31).unwrap());
 
 #[derive(Clone)]
 pub struct DateProvider {
@@ -173,7 +174,7 @@ mod tests {
         };
 
         let mut count_random_date = 0;
-        for value in 1..100 {
+        for value in 1..1000 {
             match provider.corrupted_value(value) {
                 Value::Date(value, _) => {
                     if value.num_days_from_ce() < provider.after
@@ -185,6 +186,6 @@ mod tests {
                 _ => panic!("Wrong type"),
             }
         }
-        assert!(count_random_date >= 99)
+        assert!(count_random_date >= 990)
     }
 }
