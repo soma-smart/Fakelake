@@ -63,6 +63,10 @@ columns:
         weight: 8
       - value: my_third_constant
 
+  - name: external_data
+    provider: Constant.external
+    path: tests/example.txt
+
 info:
   output_name: target/json_all_options
   output_format: json
