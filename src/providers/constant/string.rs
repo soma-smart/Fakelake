@@ -324,7 +324,7 @@ mod tests {
         let expected = vec![("one", 1), ("two", 6), ("three", 3)];
         for e in expected {
             let v: &u32 = &result
-                .get(&e.0.to_string())
+                .get(e.0)
                 .map_or_else(|| 0, |v| (*v as f64 / 100.0).round() as u32);
             assert_eq!(v, &e.1);
         }

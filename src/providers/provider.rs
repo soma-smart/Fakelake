@@ -124,6 +124,7 @@ mod tests {
     use mockall::predicate::*;
     use mockall::*;
 
+    #[allow(dead_code)]
     #[derive(Clone)]
     struct TestProvider;
     mock! {
