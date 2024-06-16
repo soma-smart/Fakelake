@@ -34,7 +34,7 @@ fn extract_datetime(
 
 fn str_datetime_to_i64(format: &str, str_datetime: &str) -> Result<i64, ()> {
     match NaiveDateTime::parse_from_str(str_datetime, format) {
-        Ok(value) => Ok(value.timestamp()),
+        Ok(value) => Ok(value.and_utc().timestamp()),
         Err(_) => Err(()),
     }
 }
@@ -144,7 +144,7 @@ mod tests {
 
     fn get_seconds_since_day0(date: &str, format: &str) -> i64 {
         match NaiveDateTime::parse_from_str(date, format) {
-            Ok(value) => value.timestamp(),
+            Ok(value) => value.and_utc().timestamp(),
             Err(_) => panic!("Should not happen as it is a tested environment"),
         }
     }

@@ -2,7 +2,7 @@ use crate::errors::FakeLakeError;
 use crate::providers;
 use crate::providers::parameters::percentage::PercentageParameter;
 
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::{DateTime, NaiveDate, Utc};
 use core::fmt;
 use yaml_rust::Yaml;
 
@@ -13,7 +13,7 @@ pub enum Value {
     Float64(f64),
     String(String),
     Date(NaiveDate, String),
-    Timestamp(NaiveDateTime, String),
+    Timestamp(DateTime<Utc>, String),
 }
 
 pub trait CloneProvider {
@@ -124,6 +124,7 @@ mod tests {
     use mockall::predicate::*;
     use mockall::*;
 
+    #[allow(dead_code)]
     #[derive(Clone)]
     struct TestProvider;
     mock! {

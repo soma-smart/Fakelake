@@ -19,10 +19,18 @@ jobs:
           - target: x86_64-apple-darwin
     steps:
     - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v5.1.0
+      with:
+        python-version: '3.12'
+    - name : Install dependencies for output validation
+      run : pip install pandas pyarrow
     - name: Build release
       run: cargo build --release --verbose
     - name: Generate all formats all options
+      run: target/release/fakelake generate tests/csv_all_options.yaml tests/json_all_options.yaml tests/parquet_all_options.yaml
+    - name: Validate all format outputs
       run: |
-        target/release/fakelake generate tests/csv_all_options.yaml
-        target/release/fakelake generate tests/json_all_options.yaml
-        target/release/fakelake generate tests/parquet_all_options.yaml
+        python .github/scripts/validate_parquet.py
+        python .github/scripts/validate_csv.py
+        python .github/scripts/validate_json.py

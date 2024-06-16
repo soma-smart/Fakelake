@@ -1,15 +1,15 @@
 use crate::providers::parameters::datetime::DatetimeParameter;
 use crate::providers::provider::{Provider, Value};
 
-use chrono::NaiveDateTime;
+use chrono::{DateTime, Utc};
 use yaml_rust::Yaml;
 
 const DEFAULT_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 const DEFAULT_AFTER: &str = "1980-01-01 12:00:00";
 const DEFAULT_BEFORE: &str = "2000-01-01 12:00:00";
 
-const MIN_TIMESTAMP: NaiveDateTime = NaiveDateTime::MIN;
-const MAX_TIMESTAMP: NaiveDateTime = NaiveDateTime::MAX;
+const MIN_TIMESTAMP: DateTime<Utc> = DateTime::<Utc>::MIN_UTC;
+const MAX_TIMESTAMP: DateTime<Utc> = DateTime::<Utc>::MAX_UTC;
 
 #[derive(Clone)]
 pub struct DatetimeProvider {
@@ -21,13 +21,13 @@ pub struct DatetimeProvider {
 impl Provider for DatetimeProvider {
     fn value(&self, _: u32) -> Value {
         Value::Timestamp(
-            NaiveDateTime::from_timestamp_opt(fastrand::i64(self.after..self.before), 0).unwrap(),
+            DateTime::from_timestamp(fastrand::i64(self.after..self.before), 0).unwrap(),
             self.format.clone(),
         )
     }
     fn corrupted_value(&self, _: u32) -> Value {
         Value::Timestamp(
-            NaiveDateTime::from_timestamp_opt(
+            DateTime::from_timestamp(
                 fastrand::i64(MIN_TIMESTAMP.timestamp()..MAX_TIMESTAMP.timestamp()),
                 0,
             )
@@ -82,7 +82,7 @@ mod tests {
 
     fn get_seconds_since_day0(date: &str, format: &str) -> i64 {
         match NaiveDateTime::parse_from_str(date, format) {
-            Ok(value) => value.timestamp(),
+            Ok(value) => value.and_utc().timestamp(),
             Err(_) => panic!("Should not happen as it is a tested environment"),
         }
     }
