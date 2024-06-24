@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="SOMA" /><link rel="canonical" href="https://soma-smart.github.io/Fakelake/columns/providers/constant/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Constant - Fakelake Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Constant";
+        var mkdocs_page_input_path = "columns/providers/constant.md";
+        var mkdocs_page_url = "/Fakelake/columns/providers/constant/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> Fakelake Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Usage</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../usage/create_your_yaml_file/">Create your yaml file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../usage/generate/">Generate</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Columns</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" >Providers</a>
+    <ul class="current">
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Constant</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#external">external</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#string">string</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#unique-value">unique value</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#list-of-values">list of values</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#list-of-weighted-values">list of weighted values</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../increment/">Increment</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../person/">Person</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../random/">Random</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../options/">Options</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Output</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../output/parameters/">Parameters</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">Fakelake Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Columns</li>
+          <li class="breadcrumb-item">Providers</li>
+      <li class="breadcrumb-item active">Constant</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h2 id="constant-provider">Constant provider</h2>
+<h3 id="external">external</h3>
+<pre><code class="language-yaml">- name: external_data
+  provider: Constant.external
+  path: path/to/data.txt
+</code></pre>
+<p>This provider enables to load a list of strings from external data file. Each line of this external file is considered as a value. A value is randomly assigned for each line.<br />
+The parameter <strong>path</strong> contains the path to the file. If file doesn't exist, a error is raised.  </p>
+<p><a href="../../options/">Options</a> are also possible.</p>
+<p>In this case, corrupted means random string value which is not into the file.</p>
+<h3 id="string">string</h3>
+<h4 id="unique-value">unique value</h4>
+<pre><code class="language-yaml"> - name: constant_as_string
+   provider: Constant.string
+   data: trout
+</code></pre>
+<h4 id="list-of-values">list of values</h4>
+<pre><code class="language-yaml"> - name: list_of_constants_as_string
+   provider: Constant.string
+   data: [trout, salmon, carp]
+</code></pre>
+<h4 id="list-of-weighted-values">list of weighted values</h4>
+<pre><code class="language-yaml"> - name: list_of_weighted_constants_as_string
+   provider: Constant.string
+   data: 
+     - value: trout
+     - value: salmon
+       weight: 8
+     - value: carp
+</code></pre>
+<p>Data value can be unique value, a list of values or a dictionnary.<br />
+Integer, float or string can be specify into the configuration but the result will be stored as a string.
+If a unique value is specified, all lines will have this value.<br />
+If a list of values is specified, value will randomly assigned for each line.<br />
+If a weighted list of values is specified, value will weighted randomly assigned for each line: for example is useful to generate data skewing.  </p>
+<p><a href="../../options/">Options</a> are also possible.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../../usage/generate/" class="btn btn-neutral float-left" title="Generate"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../increment/" class="btn btn-neutral float-right" title="Increment">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../../../usage/generate/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../increment/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

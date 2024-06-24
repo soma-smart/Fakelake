@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="author" content="SOMA" /><link rel="canonical" href="https://soma-smart.github.io/Fakelake/columns/providers/random/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Random - Fakelake Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Random";
+        var mkdocs_page_input_path = "columns/providers/random.md";
+        var mkdocs_page_url = "/Fakelake/columns/providers/random/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/languages/yaml.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> Fakelake Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Usage</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../usage/create_your_yaml_file/">Create your yaml file</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../usage/generate/">Generate</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Columns</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" >Providers</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../constant/">Constant</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../increment/">Increment</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../person/">Person</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Random</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#boolean">Boolean</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#date">Date</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#date_1">date</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#datetime">datetime</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#number">Number</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#f64">f64</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#i32">i32</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#string">String</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#alphanumeric">alphanumeric</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../options/">Options</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Output</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../output/parameters/">Parameters</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">Fakelake Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Columns</li>
+          <li class="breadcrumb-item">Providers</li>
+      <li class="breadcrumb-item active">Random</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h2 id="random-provider">Random provider</h2>
+<h3 id="boolean">Boolean</h3>
+<pre><code class="language-yaml"> - name: is_subscribed
+   provider: Random.bool
+</code></pre>
+<p>Create a random boolean.</p>
+<p><a href="../../options/">Options</a> are also possible.</p>
+<p>In this case, corrupted does not change anything as it is still a boolean.</p>
+<h3 id="date">Date</h3>
+<h5 id="date_1">date</h5>
+<pre><code class="language-yaml"> - name: created
+   provider: Random.Date.date
+   format: &quot;%m-%d-%Y&quot;
+   after: 02-15-2000
+   before: 07-17-2020
+</code></pre>
+<p>Create a random date with:</p>
+<ul>
+<li>an optional parameter <strong>format</strong>. Default is "%Y-%m-%d"</li>
+<li>an optional parameter <strong>after</strong> as a lower boundary. It should follow the <strong>format</strong> parameter. Default is 1980-01-01</li>
+<li>an optional parameter <strong>before</strong> as a upper boundary. It should follow the <strong>format</strong> parameter. Default is 2000-01-01</li>
+</ul>
+<p><a href="../../options/">Options</a> are also possible.</p>
+<p>In this case, corrupted means random date without using the parameters as limit.</p>
+<h5 id="datetime">datetime</h5>
+<pre><code class="language-yaml"> - name: connection
+   provider: Random.Date.datetime
+   format: &quot;%m-%d-%Y %H-%M-%S&quot;
+   after: 02-15-2000 12:01:01
+   before: 07-17-2020 15:06:06
+</code></pre>
+<p>Create a random datetime with:</p>
+<ul>
+<li>an optional parameter <strong>format</strong>. Default is "%Y-%m-%d %H:%M:%S"</li>
+<li>an optional parameter <strong>after</strong> as a lower boundary. It should follow the <strong>format</strong> parameter. Default is 1980-01-01 12:00:00</li>
+<li>an optional parameter <strong>before</strong> as a upper boundary. It should follow the <strong>format</strong> parameter. Default is 2000-01-01 12:00:00</li>
+</ul>
+<p><a href="../../options/">Options</a> are also possible.</p>
+<p>In this case, corrupted means random datetime without using the parameters as limit.</p>
+<h3 id="number">Number</h3>
+<h5 id="f64">f64</h5>
+<pre><code class="language-yaml"> - name: percentage
+   provider: Random.Number.f64
+   min: -1000
+   max: 1000.78
+</code></pre>
+<p>Create a random 64 bits float with:</p>
+<ul>
+<li>an optional parameter <strong>min</strong>. Default is the minimum 64bits float.</li>
+<li>an optional parameter <strong>max</strong>. Default is the maximum 64bits float.</li>
+</ul>
+<p><a href="../../options/">Options</a> are also possible.</p>
+<h5 id="i32">i32</h5>
+<pre><code class="language-yaml"> - name: score
+   provider: Random.Number.i32
+   min: -100
+   max: 100
+</code></pre>
+<p>Create a random 32 bits integer with:</p>
+<ul>
+<li>an optional parameter <strong>min</strong>. Default is the minimum 32bits integer.</li>
+<li>an optional parameter <strong>max</strong>. Default is the maximum 32bits integer.</li>
+</ul>
+<p><a href="../../options/">Options</a> are also possible.</p>
+<p>In this case, corrupted means random int32 without using the parameters as limit.</p>
+<h3 id="string">String</h3>
+<h5 id="alphanumeric">alphanumeric</h5>
+<pre><code class="language-yaml"> - name: string_code
+   provider: Random.String.alphanumeric
+   length: 5..15
+</code></pre>
+<p>Create a random string, with only Alphanumerics characters.</p>
+<ul>
+<li>an optional parameter <strong>length</strong> to specify the length of the string. This parameter can be a range <code>5..15</code> or a constant <code>8</code>. Default is 10.</li>
+</ul>
+<p><a href="../../options/">Options</a> are also possible.</p>
+<p>In this case, corrupted means random string not in UTF8 format.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../person/" class="btn btn-neutral float-left" title="Person"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../options/" class="btn btn-neutral float-right" title="Options">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../person/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../options/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
