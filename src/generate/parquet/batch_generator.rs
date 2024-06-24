@@ -164,7 +164,7 @@ impl ParquetBatchGenerator for DateBatchGenerator {
         for i in 0..rows_to_generate {
             if self.column.is_next_present() {
                 match self.column.provider.value(i) {
-                    Value::Date(value, _) => vec.push(Some(value.num_days_from_ce() + epoch_days)),
+                    Value::Date(value, _) => vec.push(Some(value.num_days_from_ce() - epoch_days)),
                     _ => panic!("Wrong provider type"),
                 }
             } else {
