@@ -173,7 +173,7 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "half",
- "lexical-core",
+ "lexical-core 0.8.5",
  "num",
  "ryu",
 ]
@@ -713,7 +713,7 @@ dependencies = [
 
 [[package]]
 name = "fakelake"
-version = "1.6.2"
+version = "1.6.3"
 dependencies = [
  "arrow-array",
  "arrow-schema",
@@ -726,10 +726,12 @@ dependencies = [
  "env_logger",
  "fastrand",
  "fastrand-contrib",
+ "lexical-core 1.0.1",
  "linked-hash-map",
  "log",
  "mockall",
  "once_cell",
+ "openssl",
  "parquet",
  "predicates",
  "rayon",
@@ -1185,11 +1187,24 @@ version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2cde5de06e8d4c2faabc400238f9ae1c74d5412d03a7bd067645ccbc47070e46"
 dependencies = [
- "lexical-parse-float",
- "lexical-parse-integer",
- "lexical-util",
- "lexical-write-float",
- "lexical-write-integer",
+ "lexical-parse-float 0.8.5",
+ "lexical-parse-integer 0.8.6",
+ "lexical-util 0.8.5",
+ "lexical-write-float 0.8.5",
+ "lexical-write-integer 0.8.5",
+]
+
+[[package]]
+name = "lexical-core"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0885f6cdfe75c96e45bbf1c4e49511f128201391ce3b56e60e29f5a1fadbc1c1"
+dependencies = [
+ "lexical-parse-float 1.0.1",
+ "lexical-parse-integer 1.0.1",
+ "lexical-util 1.0.2",
+ "lexical-write-float 1.0.1",
+ "lexical-write-integer 1.0.1",
 ]
 
 [[package]]
@@ -1198,8 +1213,19 @@ version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "683b3a5ebd0130b8fb52ba0bdc718cc56815b6a097e28ae5a6997d0ad17dc05f"
 dependencies = [
- "lexical-parse-integer",
- "lexical-util",
+ "lexical-parse-integer 0.8.6",
+ "lexical-util 0.8.5",
+ "static_assertions",
+]
+
+[[package]]
+name = "lexical-parse-float"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "924f7ec090cd4f60bd873f160b0fb69a0c80bb3a98f2e778a1893ae0e5c4b0b9"
+dependencies = [
+ "lexical-parse-integer 1.0.1",
+ "lexical-util 1.0.2",
  "static_assertions",
 ]
 
@@ -1209,7 +1235,17 @@ version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6d0994485ed0c312f6d965766754ea177d07f9c00c9b82a5ee62ed5b47945ee9"
 dependencies = [
- "lexical-util",
+ "lexical-util 0.8.5",
+ "static_assertions",
+]
+
+[[package]]
+name = "lexical-parse-integer"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8feab1da84a2ab0ddbbad2fb1830b755f71a9a8d996c7a1f2a553faf72aa3686"
+dependencies = [
+ "lexical-util 1.0.2",
  "static_assertions",
 ]
 
@@ -1223,13 +1259,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "lexical-util"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "591ce1a12ecd3b26d4121ab360a6a4483a67f05a5372add6acbfd0b65c9285d9"
+dependencies = [
+ "static_assertions",
+]
+
+[[package]]
 name = "lexical-write-float"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "accabaa1c4581f05a3923d1b4cfd124c329352288b7b9da09e766b0668116862"
 dependencies = [
- "lexical-util",
- "lexical-write-integer",
+ "lexical-util 0.8.5",
+ "lexical-write-integer 0.8.5",
+ "static_assertions",
+]
+
+[[package]]
+name = "lexical-write-float"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "05b0f3f9ddada5942b54e97654d535df37c9340ad66c24b50360a90619779f41"
+dependencies = [
+ "lexical-util 1.0.2",
+ "lexical-write-integer 1.0.1",
  "static_assertions",
 ]
 
@@ -1239,7 +1295,17 @@ version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e1b6f3d1f4422866b68192d62f77bc5c700bee84f3069f2469d7bc8c77852446"
 dependencies = [
- "lexical-util",
+ "lexical-util 0.8.5",
+ "static_assertions",
+]
+
+[[package]]
+name = "lexical-write-integer"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "48c6d47254ddb292771dce7697ae2be9619f8e369d01a9ccda15ef2ff50443fc"
+dependencies = [
+ "lexical-util 1.0.2",
  "static_assertions",
 ]
 
@@ -1606,9 +1672,9 @@ checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 
 [[package]]
 name = "openssl"
-version = "0.10.64"
+version = "0.10.66"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95a0481286a310808298130d22dd1fef0fa571e05a8f44ec801801e84b216b1f"
+checksum = "9529f4786b70a3e8c61e11179af17ab6188ad8d0ded78c5529441ed39d4bd9c1"
 dependencies = [
  "bitflags 2.5.0",
  "cfg-if",
@@ -1638,9 +1704,9 @@ checksum = "ff011a302c396a5197692431fc1948019154afc178baf7d8e37367442a4601cf"
 
 [[package]]
 name = "openssl-sys"
-version = "0.9.102"
+version = "0.9.103"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c597637d56fbc83893a35eb0dd04b2b8e7a50c91e64e9493e398b5df4fb45fa2"
+checksum = "7f9e8deee91df40a943c71b917e5874b951d32a802526c85721ce3b776c929d6"
 dependencies = [
  "cc",
  "libc",
