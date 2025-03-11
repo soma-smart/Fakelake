@@ -10,11 +10,18 @@ const DEFAULT_CONSTANT: &str = "constant";
 #[derive(Clone)]
 pub struct ConstantStringProvider {
     data: String,
+    list: Option<Vec<String>>,
 }
 
 impl Provider for ConstantStringProvider {
     fn value(&self, _: u32) -> Value {
-        Value::String(self.data.to_string())
+        match &self.list {
+            Some(list) => {
+                let index = fastrand::usize(..list.len());
+                Value::String(list[index].to_string())
+            }
+            None => Value::String(self.data.to_string()),
+        }
     }
 
     fn corrupted_value(&self, _: u32) -> Value {
@@ -72,9 +79,14 @@ impl Provider for WeightedListStringProvider {
 pub fn new_from_yaml(column: &Yaml) -> Box<dyn Provider> {
     let data_option = WStringParameter::new(column, "data", DEFAULT_CONSTANT);
     let length: u32 = data_option.len() as u32;
+    let list: Option<Vec<String>> = match &column["list"] {
+        Yaml::Array(values) => Some(values.iter().map(|v| v.as_str().unwrap().to_string()).collect()),
+        _ => None,
+    };
     if length == 1 {
         Box::new(ConstantStringProvider {
             data: data_option[0].value.to_string(),
+            list,
         })
     } else {
         let w = WeightedListStringProvider::new(data_option);
@@ -97,14 +109,20 @@ mod tests {
 
     use yaml_rust::YamlLoader;
 
-    fn generate_provider(data: Option<&str>) -> Box<dyn Provider> {
+    fn generate_provider(data: Option<&str>, list: Option<Vec<String>>) -> Box<dyn Provider> {
         let yaml_data = match data {
             Some(value) => format!("{}data: {}", "\n", value),
             None => String::new(),
         };
         let yaml_str = format!("name: id{}", yaml_data);
         let yaml = YamlLoader::load_from_str(yaml_str.as_str()).unwrap();
-        super::new_from_yaml(&yaml[0])
+        let mut provider = super::new_from_yaml(&yaml[0]);
+        if let Some(list) = list {
+            if let Some(constant_provider) = provider.as_any_mut().downcast_mut::<ConstantStringProvider>() {
+                constant_provider.list = Some(list);
+            }
+        }
+        provider
     }
 
     #[test]
@@ -134,6 +152,7 @@ mod tests {
     fn given_data_as_string_should_return_string_constant_type() {
         let provider: ConstantStringProvider = ConstantStringProvider {
             data: "my_value".to_string(),
+            list: None,
         };
         for i in 0..10 {
             match provider.value(i) {
@@ -202,7 +221,7 @@ mod tests {
     // Validate value calculation
     #[test]
     fn given_no_config_should_return_default() {
-        let provider = generate_provider(None);
+        let provider = generate_provider(None, None);
         assert_eq!(
             provider.value(0),
             Value::String(DEFAULT_CONSTANT.to_string())
@@ -211,7 +230,7 @@ mod tests {
 
     #[test]
     fn given_string_config_should_return_array_value() {
-        let provider = generate_provider(Some("my_data"));
+        let provider = generate_provider(Some("my_data"), None);
         for i in 0..10 {
             assert_eq!(provider.value(i), Value::String("my_data".to_string()));
         }
@@ -225,7 +244,7 @@ mod tests {
             "array".to_string(),
         ];
         let input: &str = "[my_data, example, array]";
-        let provider = generate_provider(Some(input));
+        let provider = generate_provider(Some(input), None);
         for i in 0..10 {
             match provider.value(i) {
                 Value::String(s) => assert!(expected_input.contains(&s)),
@@ -243,7 +262,7 @@ mod tests {
         ];
         let input: &str =
             "\n  - value: trout \n  - value: salmon \n    weight: 8 \n  - value: carp";
-        let provider = generate_provider(Some(input));
+        let provider = generate_provider(Some(input), None);
         for i in 0..10 {
             match provider.value(i) {
                 Value::String(s) => assert!(expected_input.contains(&s)),
@@ -332,7 +351,7 @@ mod tests {
 
     #[test]
     fn given_no_config_should_return_corrupted_value() {
-        let provider = generate_provider(None);
+        let provider = generate_provider(None, None);
         assert_ne!(
             provider.corrupted_value(0),
             Value::String(DEFAULT_CONSTANT.to_string())
@@ -341,7 +360,7 @@ mod tests {
 
     #[test]
     fn given_string_config_should_return_corrupted_value() {
-        let provider = generate_provider(Some("my_data"));
+        let provider = generate_provider(Some("my_data"), None);
         for i in 0..10 {
             assert_ne!(
                 provider.corrupted_value(i),
@@ -358,7 +377,7 @@ mod tests {
             "array".to_string(),
         ];
         let input: &str = "[my_data, example, array]";
-        let provider = generate_provider(Some(input));
+        let provider = generate_provider(Some(input), None);
         for i in 0..10 {
             match provider.corrupted_value(i) {
                 Value::String(s) => assert!(!expected_input.contains(&s)),
@@ -376,10 +395,22 @@ mod tests {
         ];
         let input: &str =
             "\n  - value: trout \n  - value: salmon \n    weight: 8 \n  - value: carp";
-        let provider = generate_provider(Some(input));
+        let provider = generate_provider(Some(input), None);
         for i in 0..10 {
             match provider.corrupted_value(i) {
                 Value::String(s) => assert!(!expected_input.contains(&s)),
+                _ => panic!(),
+            }
+        }
+    }
+
+    #[test]
+    fn given_list_of_strings_should_return_random_string_from_list() {
+        let list = vec!["apple".to_string(), "banana".to_string(), "cherry".to_string()];
+        let provider = generate_provider(None, Some(list.clone()));
+        for _ in 0..10 {
+            match provider.value(0) {
+                Value::String(s) => assert!(list.contains(&s)),
                 _ => panic!(),
             }
         }

@@ -52,4 +52,20 @@ mod tests {
             _ => panic!(),
         }
     }
+
+    #[test]
+    fn given_string_provider_with_list_should_return_provider() {
+        let provider_name = "string";
+        let yaml_str = format!(
+            "name: constant_with_optional_list{}provider: {}{}data: trout{}list: [apple, banana, cherry]",
+            '\n', provider_name, '\n', '\n', '\n'
+        );
+        let column = &YamlLoader::load_from_str(yaml_str.as_str()).unwrap()[0];
+
+        let provider_split = provider_name.split('.');
+        match get_corresponding_provider(provider_split, column) {
+            Ok(_) => (),
+            _ => panic!(),
+        }
+    }
 }

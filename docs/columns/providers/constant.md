@@ -41,10 +41,19 @@ In this case, corrupted means random string value which is not into the file.
      - value: carp
 ```
 
+#### optional list of strings
+```yaml
+ - name: constant_with_optional_list
+   provider: Constant.string
+   data: trout
+   list: [apple, banana, cherry]
+```
+
 Data value can be unique value, a list of values or a dictionnary.  
 Integer, float or string can be specify into the configuration but the result will be stored as a string.
 If a unique value is specified, all lines will have this value.  
 If a list of values is specified, value will randomly assigned for each line.  
 If a weighted list of values is specified, value will weighted randomly assigned for each line: for example is useful to generate data skewing.  
- 
+If an optional list of strings is provided, a value will be randomly selected from the list for each line.  
+
 [Options](../options.md) are also possible.
