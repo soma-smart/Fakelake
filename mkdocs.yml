@@ -24,13 +24,12 @@ nav:
   - 'Usage':
     - 'usage/create_your_yaml_file.md'
     - 'usage/generate.md'
+  - 'Providers':
+    - 'Random': 'columns/providers/random.md'
+    - 'Increment': 'columns/providers/increment.md'
+    - 'Constant': 'columns/providers/constant.md'
+    - 'Person': 'columns/providers/person.md'
   - 'Columns':
-    - 'Providers':
-      - 'columns/providers/constant.md'
-      - 'columns/providers/increment.md'
-      - 'columns/providers/person.md'
-      - 'columns/providers/random.md'
-    - 'columns/options.md'
+    - 'Options': 'columns/options.md'
   - 'Output':
-    - 'output/parameters.md'
-      
+    - 'Parameters': 'output/parameters.md'
