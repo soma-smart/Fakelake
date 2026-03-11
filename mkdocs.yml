@@ -17,7 +17,6 @@ theme:
   highlightjs: true
   hljs_languages:
     - yaml
-  custom_dir: docs/overrides
 
 nav:
   - 'Home': 'index.md'
