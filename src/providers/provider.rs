@@ -217,7 +217,10 @@ mod tests {
 
             match ProviderBuilder::get_corresponding_provider(provider_name, column) {
                 Ok(_) => (),
-                _ => panic!("Provider '{}' should be resolved case-insensitively", provider_name),
+                _ => panic!(
+                    "Provider '{}' should be resolved case-insensitively",
+                    provider_name
+                ),
             }
         }
     }
