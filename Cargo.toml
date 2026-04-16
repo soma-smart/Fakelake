@@ -1,6 +1,6 @@
 [package]
 name = "fakelake"
-version = "1.7.0"
+version = "1.7.2"
 edition = "2021"
 rust-version = "1.90.0"
 
