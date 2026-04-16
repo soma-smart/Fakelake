@@ -24,82 +24,68 @@ impl OutputFormat for OutputParquet {
         PARQUET_EXTENSION
     }
 
-    fn generate_from_config(&self, config: &Config) -> Result<(), FakeLakeError> {
-        if config.columns.is_empty() {
-            return Err(FakeLakeError::BadYAMLFormat(
-                "No columns to generate".to_string(),
-            ));
-        }
-
-        let default_file_name = config.get_output_file_name(self.get_extension());
+    fn generate_file(
+        &self,
+        file_name: &str,
+        config: &Config,
+        sub_seed: u64,
+        file_index: u32,
+    ) -> Result<(), FakeLakeError> {
         let rows = config.get_number_of_rows();
-        let files = config.get_number_of_generated_files();
-        let root_seed = config.resolve_root_seed();
 
         let schema = get_schema_from_config(config);
         debug!("Writing schema: {:?}", schema);
 
-        // WriterProperties can be used to set Parquet file options
         let props = WriterProperties::builder()
             .set_compression(Compression::SNAPPY)
             .build();
 
         let batch_size = 8192 * 8;
-        // ceil division
         let iterations = (rows as f64 / batch_size as f64).ceil() as u32;
 
-        for f in 0..files {
-            let file_name = if files == 1 {
-                default_file_name.clone()
+        let file = std::fs::File::create(file_name).unwrap();
+        let mut writer = ArrowWriter::try_new(file, Arc::new(schema.clone()), Some(props)).unwrap();
+
+        let mut schema_cols: Vec<(String, ArrayRef)> = Vec::new();
+        let mut provider_generators: Vec<Box<dyn ParquetBatchGenerator>> = Vec::new();
+        config.columns.clone().into_iter().for_each(|column| {
+            schema_cols.push((
+                column.clone().name,
+                Arc::new(Int32Array::from(vec![0])) as ArrayRef,
+            ));
+            provider_generators.push(parquet_batch_generator_builder(column.clone()))
+        });
+
+        for i in 0..iterations {
+            debug!("Generating batch {} of {}...", i, iterations);
+            let rows_to_generate = if i == iterations - 1 {
+                rows - (i * batch_size)
             } else {
-                format!("{}_{}", default_file_name.clone(), f)
+                batch_size
             };
-            let file = std::fs::File::create(file_name).unwrap();
-            let mut writer =
-                ArrowWriter::try_new(file, Arc::new(schema.clone()), Some(props.clone())).unwrap();
 
-            let mut schema_cols: Vec<(String, ArrayRef)> = Vec::new();
-            let mut provider_generators: Vec<Box<dyn ParquetBatchGenerator>> = Vec::new();
-            config.columns.clone().into_iter().for_each(|column| {
-                schema_cols.push((
-                    column.clone().name,
-                    Arc::new(Int32Array::from(vec![0])) as ArrayRef,
-                ));
-                provider_generators.push(parquet_batch_generator_builder(column.clone()))
-            });
+            let schema_cols: Mutex<Vec<(String, ArrayRef)>> = Mutex::new(schema_cols.clone());
+            let provider_generators = provider_generators.clone();
 
-            for i in 0..iterations {
-                debug!("Generating batch {} of {}...", i, iterations);
-                let rows_to_generate = if i == iterations - 1 {
-                    rows - (i * batch_size)
-                } else {
-                    batch_size
-                };
+            provider_generators.into_par_iter().enumerate().for_each(
+                |(col_index, provider_generator)| {
+                    let col_seed = rng::derive_seed(
+                        sub_seed,
+                        rng::DOMAIN_PROVIDER,
+                        &[file_index as u64, i as u64, col_index as u64],
+                    );
+                    let _scope = rng::scoped_seeded(col_seed);
+                    let array = provider_generator.batch_array(rows_to_generate);
+                    schema_cols.lock().unwrap()[col_index] =
+                        (provider_generator.name().to_string(), array);
+                },
+            );
 
-                let schema_cols: Mutex<Vec<(String, ArrayRef)>> = Mutex::new(schema_cols.clone());
-                let provider_generators = provider_generators.clone();
-
-                provider_generators.into_par_iter().enumerate().for_each(
-                    |(index, provider_generator)| {
-                        let sub_seed = rng::derive_seed(
-                            root_seed,
-                            rng::DOMAIN_PROVIDER,
-                            &[f as u64, i as u64, index as u64],
-                        );
-                        let _scope = rng::scoped_seeded(sub_seed);
-                        let array = provider_generator.batch_array(rows_to_generate);
-                        schema_cols.lock().unwrap()[index] =
-                            (provider_generator.name().to_string(), array);
-                    },
-                );
-
-                let batch =
-                    RecordBatch::try_from_iter(schema_cols.lock().unwrap().clone()).unwrap();
-                writer.write(&batch).expect("Writing batch");
-            }
-            // writer must be closed to write footer
-            writer.close().unwrap();
+            let batch = RecordBatch::try_from_iter(schema_cols.lock().unwrap().clone()).unwrap();
+            writer.write(&batch).expect("Writing batch");
         }
+        writer.close().unwrap();
+
         Ok(())
     }
 }

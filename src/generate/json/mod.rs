@@ -26,66 +26,53 @@ impl OutputFormat for OutputJson {
         JSON_EXTENSION
     }
 
-    fn generate_from_config(&self, config: &Config) -> Result<(), FakeLakeError> {
-        if config.columns.is_empty() {
-            return Err(FakeLakeError::BadYAMLFormat(
-                "No columns to generate".to_string(),
-            ));
-        }
-
-        let default_file_name = config.get_output_file_name(self.get_extension());
+    fn generate_file(
+        &self,
+        file_name: &str,
+        config: &Config,
+        sub_seed: u64,
+        _file_index: u32,
+    ) -> Result<(), FakeLakeError> {
+        let _scope = rng::scoped_seeded(sub_seed);
         let rows = config.get_number_of_rows();
-        let files = config.get_number_of_generated_files();
-        let root_seed = config.resolve_root_seed();
 
-        for f in 0..files {
-            let sub_seed = rng::derive_seed(root_seed, rng::DOMAIN_PROVIDER, &[f as u64]);
-            let _scope = rng::scoped_seeded(sub_seed);
-
-            let file_name = if files == 1 {
-                default_file_name.clone()
-            } else {
-                format!("{}_{}", default_file_name.clone(), f)
-            };
-
-            let mut buffer = BufWriter::new(File::create(file_name)?);
-            let mut json = Vec::<sv>::new();
-            for i in 0..rows {
-                let mut row = Map::new();
-                for column in &config.columns {
-                    if column.is_next_present() {
-                        let str_value = match column.provider.value(i) {
-                            Value::Bool(value) => sv::Bool(value),
-                            Value::Int32(value) => sv::Number(Number::from(value)),
-                            Value::Float64(value) => sv::Number(Number::from_f64(value).unwrap()),
-                            Value::String(value) => sv::String(value),
-                            Value::Date(value, date_format) => {
-                                sv::String(value.format(&date_format).to_string())
-                            }
-                            Value::Timestamp(value, date_format) => {
-                                sv::String(value.format(&date_format).to_string())
-                            }
-                        };
-                        row.insert(column.name.to_string(), str_value);
-                    }
-                }
-
-                if self.wrap_up {
-                    json.insert(i.try_into().unwrap(), sv::Object(row));
-                } else {
-                    if let Err(e) = serde_json::to_writer(&mut buffer, &row) {
-                        return Err(FakeLakeError::JSONError(e));
-                    }
-                    if let Err(e) = buffer.write(b"\n") {
-                        return Err(FakeLakeError::IOError(e));
-                    }
+        let mut buffer = BufWriter::new(File::create(file_name)?);
+        let mut json = Vec::<sv>::new();
+        for i in 0..rows {
+            let mut row = Map::new();
+            for column in &config.columns {
+                if column.is_next_present() {
+                    let str_value = match column.provider.value(i) {
+                        Value::Bool(value) => sv::Bool(value),
+                        Value::Int32(value) => sv::Number(Number::from(value)),
+                        Value::Float64(value) => sv::Number(Number::from_f64(value).unwrap()),
+                        Value::String(value) => sv::String(value),
+                        Value::Date(value, date_format) => {
+                            sv::String(value.format(&date_format).to_string())
+                        }
+                        Value::Timestamp(value, date_format) => {
+                            sv::String(value.format(&date_format).to_string())
+                        }
+                    };
+                    row.insert(column.name.to_string(), str_value);
                 }
             }
 
             if self.wrap_up {
-                if let Err(e) = serde_json::to_writer(&mut buffer, &json) {
+                json.insert(i.try_into().unwrap(), sv::Object(row));
+            } else {
+                if let Err(e) = serde_json::to_writer(&mut buffer, &row) {
                     return Err(FakeLakeError::JSONError(e));
                 }
+                if let Err(e) = buffer.write(b"\n") {
+                    return Err(FakeLakeError::IOError(e));
+                }
+            }
+        }
+
+        if self.wrap_up {
+            if let Err(e) = serde_json::to_writer(&mut buffer, &json) {
+                return Err(FakeLakeError::JSONError(e));
             }
         }
 
