@@ -1,8 +1,11 @@
 use yaml_rust::Yaml;
 
-use crate::{errors::FakeLakeError, providers::provider::Provider};
+use crate::errors::FakeLakeError;
+use crate::providers::provider::{unknown_provider, Provider};
 
 use super::{external, string};
+
+const AVAILABLE: &[&str] = &["constant.string", "constant.external"];
 
 pub fn get_corresponding_provider(
     mut provider_split: std::str::Split<'_, char>,
@@ -11,10 +14,10 @@ pub fn get_corresponding_provider(
     match provider_split.next() {
         Some("string") => Ok(string::new_from_yaml(column)),
         Some("external") => Ok(external::new_from_yaml(column)),
-        other => Err(FakeLakeError::BadYAMLFormat(format!(
-            "Unknown provider: constant.{}. Expected one of: constant.string, constant.external",
-            other.unwrap_or("<missing>")
-        ))),
+        other => Err(unknown_provider(
+            &format!("constant.{}", other.unwrap_or("<missing>")),
+            AVAILABLE,
+        )),
     }
 }
 

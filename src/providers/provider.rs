@@ -106,13 +106,19 @@ impl ProviderBuilder {
             Some("random") => {
                 providers::random::builder::get_corresponding_provider(provider_split, column)
             }
-            _ => Err(unknown_provider(provider)),
+            _ => Err(unknown_provider(
+                provider,
+                &["constant.*", "increment.*", "person.*", "random.*"],
+            )),
         }
     }
 }
 
-pub fn unknown_provider(wrong_provider: &str) -> FakeLakeError {
-    FakeLakeError::BadYAMLFormat(format!("Unknown provider: {}", wrong_provider))
+pub fn unknown_provider(wrong_provider: &str, available: &'static [&'static str]) -> FakeLakeError {
+    FakeLakeError::UnknownProvider {
+        provider: wrong_provider.to_string(),
+        available,
+    }
 }
 
 #[cfg(test)]

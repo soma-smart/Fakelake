@@ -1,9 +1,11 @@
 use crate::errors::FakeLakeError;
-use crate::providers::provider::Provider;
+use crate::providers::provider::{unknown_provider, Provider};
 
 use super::alphanumeric;
 
 use yaml_rust::Yaml;
+
+const AVAILABLE: &[&str] = &["random.string.alphanumeric"];
 
 pub fn get_corresponding_provider(
     mut provider_split: std::str::Split<'_, char>,
@@ -11,10 +13,10 @@ pub fn get_corresponding_provider(
 ) -> Result<Box<dyn Provider>, FakeLakeError> {
     match provider_split.next() {
         Some("alphanumeric") => Ok(alphanumeric::new_from_yaml(column)),
-        other => Err(FakeLakeError::BadYAMLFormat(format!(
-            "Unknown provider: random.string.{}. Expected one of: random.string.alphanumeric",
-            other.unwrap_or("<missing>")
-        ))),
+        other => Err(unknown_provider(
+            &format!("random.string.{}", other.unwrap_or("<missing>")),
+            AVAILABLE,
+        )),
     }
 }
 

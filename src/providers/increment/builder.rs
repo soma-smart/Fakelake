@@ -1,9 +1,11 @@
 use crate::errors::FakeLakeError;
-use crate::providers::provider::Provider;
+use crate::providers::provider::{unknown_provider, Provider};
 
 use super::integer;
 
 use yaml_rust::Yaml;
+
+const AVAILABLE: &[&str] = &["increment.integer"];
 
 pub fn get_corresponding_provider(
     mut provider_split: std::str::Split<'_, char>,
@@ -11,10 +13,10 @@ pub fn get_corresponding_provider(
 ) -> Result<Box<dyn Provider>, FakeLakeError> {
     match provider_split.next() {
         Some("integer") => Ok(integer::new_from_yaml(column)),
-        other => Err(FakeLakeError::BadYAMLFormat(format!(
-            "Unknown provider: increment.{}. Expected one of: increment.integer",
-            other.unwrap_or("<missing>")
-        ))),
+        other => Err(unknown_provider(
+            &format!("increment.{}", other.unwrap_or("<missing>")),
+            AVAILABLE,
+        )),
     }
 }
 

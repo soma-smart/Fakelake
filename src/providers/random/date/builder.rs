@@ -1,10 +1,12 @@
 use crate::errors::FakeLakeError;
-use crate::providers::provider::Provider;
+use crate::providers::provider::{unknown_provider, Provider};
 
 use super::date;
 use super::datetime;
 
 use yaml_rust::Yaml;
+
+const AVAILABLE: &[&str] = &["random.date.date", "random.date.datetime"];
 
 pub fn get_corresponding_provider(
     mut provider_split: std::str::Split<'_, char>,
@@ -13,10 +15,10 @@ pub fn get_corresponding_provider(
     match provider_split.next() {
         Some("date") => Ok(date::new_from_yaml(column)),
         Some("datetime") => Ok(datetime::new_from_yaml(column)),
-        other => Err(FakeLakeError::BadYAMLFormat(format!(
-            "Unknown provider: random.date.{}. Expected one of: random.date.date, random.date.datetime",
-            other.unwrap_or("<missing>")
-        ))),
+        other => Err(unknown_provider(
+            &format!("random.date.{}", other.unwrap_or("<missing>")),
+            AVAILABLE,
+        )),
     }
 }
 

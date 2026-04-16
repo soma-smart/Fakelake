@@ -1,11 +1,13 @@
 use crate::errors::FakeLakeError;
 use crate::providers::constant::external;
-use crate::providers::provider::Provider;
+use crate::providers::provider::{unknown_provider, Provider};
 
 use super::email;
 
 use once_cell::sync::Lazy;
 use yaml_rust::Yaml;
+
+const AVAILABLE: &[&str] = &["person.email", "person.fname", "person.lname"];
 
 static FIRST_NAMES: Lazy<Vec<String>> = Lazy::new(|| {
     let raw_first_names = include_str!("../../../static/first_name_fr.txt");
@@ -25,10 +27,10 @@ pub fn get_corresponding_provider(
         Some("email") => Ok(email::new_from_yaml(column)),
         Some("fname") => Ok(external::new(FIRST_NAMES.to_vec())),
         Some("lname") => Ok(external::new(LAST_NAMES.to_vec())),
-        other => Err(FakeLakeError::BadYAMLFormat(format!(
-            "Unknown provider: person.{}. Expected one of: person.email, person.fname, person.lname",
-            other.unwrap_or("<missing>")
-        ))),
+        other => Err(unknown_provider(
+            &format!("person.{}", other.unwrap_or("<missing>")),
+            AVAILABLE,
+        )),
     }
 }
 

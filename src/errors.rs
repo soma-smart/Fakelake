@@ -4,6 +4,10 @@ use std::io;
 #[derive(Debug)]
 pub enum FakeLakeError {
     BadYAMLFormat(String),
+    UnknownProvider {
+        provider: String,
+        available: &'static [&'static str],
+    },
     IOError(io::Error),
     CSVError(csv::Error),
     JSONError(serde_json::Error),
@@ -16,6 +20,17 @@ impl fmt::Display for FakeLakeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             FakeLakeError::BadYAMLFormat(msg) => write!(f, "{}", msg),
+            FakeLakeError::UnknownProvider {
+                provider,
+                available,
+            } => {
+                write!(
+                    f,
+                    "Unknown provider: {}. Expected one of: {}",
+                    provider,
+                    available.join(", ")
+                )
+            }
             FakeLakeError::IOError(err) => write!(f, "IO error: {}", err),
             FakeLakeError::CSVError(err) => write!(f, "CSV error: {}", err),
             FakeLakeError::JSONError(err) => write!(f, "JSON error: {}", err),
