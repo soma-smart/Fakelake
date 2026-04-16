@@ -196,6 +196,33 @@ mod tests {
     }
 
     #[test]
+    fn given_valid_provider_case_insensitive_should_return_provider() {
+        let provider_names = [
+            "Constant.String",
+            "CONSTANT.STRING",
+            "Increment.Integer",
+            "INCREMENT.INTEGER",
+            "Person.Email",
+            "PERSON.EMAIL",
+            "Random.String.Alphanumeric",
+            "RANDOM.STRING.ALPHANUMERIC",
+            "Random.Number.I32",
+            "RANDOM.NUMBER.F64",
+            "Random.Date.Date",
+            "RANDOM.DATE.DATETIME",
+        ];
+        for provider_name in provider_names {
+            let yaml_str = format!("name: name{}provider: {}", '\n', provider_name);
+            let column = &YamlLoader::load_from_str(yaml_str.as_str()).unwrap()[0];
+
+            match ProviderBuilder::get_corresponding_provider(provider_name, column) {
+                Ok(_) => (),
+                _ => panic!("Provider '{}' should be resolved case-insensitively", provider_name),
+            }
+        }
+    }
+
+    #[test]
     fn given_wrong_provider_should_return_error() {
         let provider_name = "not_a_provider";
         let yaml_str = format!("name: test_col{}provider: {}", '\n', provider_name);
