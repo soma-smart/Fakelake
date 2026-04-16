@@ -2,6 +2,7 @@ use crate::config::Config;
 use crate::errors::FakeLakeError;
 use crate::generate::output_format::OutputFormat;
 use crate::providers::provider::Value;
+use crate::rng;
 use serde_json::Value as sv;
 use serde_json::{Map, Number};
 use std::fs::File;
@@ -25,18 +26,17 @@ impl OutputFormat for OutputJson {
         JSON_EXTENSION
     }
 
-    fn generate_from_config(&self, config: &Config) -> Result<(), FakeLakeError> {
-        if config.columns.is_empty() {
-            return Err(FakeLakeError::BadYAMLFormat(
-                "No columns to generate".to_string(),
-            ));
-        }
-
-        let file_name = config.get_output_file_name(self.get_extension());
-        let mut buffer = BufWriter::new(File::create(file_name)?);
+    fn generate_file(
+        &self,
+        file_name: &str,
+        config: &Config,
+        file_seed: u64,
+    ) -> Result<(), FakeLakeError> {
+        let _scope = rng::scoped_seeded(file_seed);
         let rows = config.get_number_of_rows();
-        let mut json = Vec::<sv>::new();
 
+        let mut buffer = BufWriter::new(File::create(file_name)?);
+        let mut json = Vec::<sv>::new();
         for i in 0..rows {
             let mut row = Map::new();
             for column in &config.columns {
@@ -113,6 +113,7 @@ mod tests {
                 output_name: name,
                 output_format: Some(OutputType::Json(true)),
                 rows,
+                files: None,
                 seed: None,
             }),
         }
@@ -222,6 +223,7 @@ mod tests {
                 output_name: Some("target/test_generated/output_name".to_string()),
                 output_format: Some(OutputType::Json(true)),
                 rows: Some(1000),
+                files: None,
                 seed: None,
             }),
         };
@@ -249,6 +251,7 @@ mod tests {
                 output_name: Some("target/test_generated/output_wrap_up".to_string()),
                 output_format: Some(OutputType::Json(true)),
                 rows: Some(5),
+                files: None,
                 seed: None,
             }),
         };
@@ -281,6 +284,7 @@ mod tests {
                 output_name: Some("target/test_generated/output_not_wrap_up".to_string()),
                 output_format: Some(OutputType::Json(false)),
                 rows: Some(5),
+                files: None,
                 seed: None,
             }),
         };

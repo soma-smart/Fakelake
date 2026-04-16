@@ -2,6 +2,7 @@ use crate::config::Config;
 use crate::errors::FakeLakeError;
 use crate::generate::output_format::OutputFormat;
 use crate::providers::provider::Value;
+use crate::rng;
 
 use csv::WriterBuilder;
 
@@ -23,14 +24,13 @@ impl OutputFormat for OutputCsv {
         CSV_EXTENSION
     }
 
-    fn generate_from_config(&self, config: &Config) -> Result<(), FakeLakeError> {
-        if config.columns.is_empty() {
-            return Err(FakeLakeError::BadYAMLFormat(
-                "No columns to generate".to_string(),
-            ));
-        }
-
-        let file_name = config.get_output_file_name(self.get_extension());
+    fn generate_file(
+        &self,
+        file_name: &str,
+        config: &Config,
+        file_seed: u64,
+    ) -> Result<(), FakeLakeError> {
+        let _scope = rng::scoped_seeded(file_seed);
         let rows = config.get_number_of_rows();
 
         let mut wtr = match WriterBuilder::new()
@@ -111,6 +111,7 @@ mod tests {
                 output_name: name,
                 output_format: Some(OutputType::Csv(5)),
                 rows,
+                files: None,
                 seed: None,
             }),
         }
@@ -220,6 +221,7 @@ mod tests {
                 output_name: Some("target/test_generated/output_name".to_string()),
                 output_format: Some(OutputType::Csv(5)),
                 rows: Some(1000),
+                files: None,
                 seed: None,
             }),
         };

@@ -37,6 +37,25 @@ impl Config {
             None => 1_000_000,
         }
     }
+
+    pub fn get_number_of_generated_files(&self) -> u32 {
+        match &self.info {
+            Some(info) => info.files.unwrap_or(1),
+            None => 1,
+        }
+    }
+
+    /// Resolve the run's root seed. If the YAML provides one, use it directly;
+    /// otherwise pick a random u64 once so that parallel sub-tasks within the
+    /// run still derive stable sub-seeds even without a user-provided seed.
+    pub fn resolve_root_seed(&self) -> u64 {
+        self.info
+            .as_ref()
+            .and_then(|i| i.seed)
+            // Cap random seeds to i64::MAX so the value round-trips through
+            // YAML (yaml-rust stores integers as i64).
+            .unwrap_or_else(|| fastrand::Rng::new().u64(0..=i64::MAX as u64))
+    }
 }
 
 #[derive(Debug)]
@@ -136,6 +155,9 @@ pub struct Info {
     /// By default, output_format is Parquet
     pub output_format: Option<OutputType>,
     pub rows: Option<u32>,
+    /// Number of outputted files, default is one. If more than one file is generated,
+    /// an index suffix is appended to the output file name.
+    pub files: Option<u32>,
     /// Seed for deterministic random generation
     pub seed: Option<u64>,
 }
@@ -199,6 +221,38 @@ impl Info {
             },
         };
 
+        let files = match section_info["files"].as_i64() {
+            Some(files) if files >= 1 && files <= u32::MAX as i64 => Some(files as u32),
+            Some(_) => {
+                return Err(FakeLakeError::BadYAMLFormat(
+                    "info.files should be an integer greater than or equal to 1".to_string(),
+                ))
+            }
+            None => match section_info["files"].as_str() {
+                Some(files_str) => {
+                    let normalized = files_str.replace('_', "");
+                    match normalized.parse::<u32>() {
+                        Ok(files) if files >= 1 => Some(files),
+                        _ => {
+                            return Err(FakeLakeError::BadYAMLFormat(
+                                "info.files should be an integer greater than or equal to 1"
+                                    .to_string(),
+                            ))
+                        }
+                    }
+                }
+                None => match section_info["files"] {
+                    Yaml::BadValue => None,
+                    _ => {
+                        return Err(FakeLakeError::BadYAMLFormat(
+                            "info.files should be an integer greater than or equal to 1"
+                                .to_string(),
+                        ))
+                    }
+                },
+            },
+        };
+
         // seed could be i64 or str (i64 with _ separators)
         let seed = match section_info["seed"].as_i64() {
             Some(seed) => Some(seed as u64),
@@ -212,6 +266,7 @@ impl Info {
             output_name,
             output_format,
             rows,
+            files,
             seed,
         })
     }
@@ -229,9 +284,6 @@ pub fn get_config_from_string(file_content: String) -> Result<Config, FakeLakeEr
     };
 
     let info = Info::parse_info_section(&parsed_yaml).unwrap();
-
-    // Initialize the global RNG with the seed from the config
-    crate::rng::initialize_rng(info.seed);
 
     let config = Config {
         columns,
@@ -800,5 +852,36 @@ mod tests {
         .to_string();
         let config = get_config_from_string(file_content).unwrap();
         assert_eq!(config.get_number_of_rows(), 1_000);
+    }
+
+    #[test]
+    fn given_no_files_should_default_to_one() {
+        let file_content = "
+        columns:
+            - name: id
+              provider: Increment.integer
+        info:
+            output_name: expected_name
+            output_format: parquet
+        "
+        .to_string();
+        let config = get_config_from_string(file_content).unwrap();
+        assert_eq!(config.get_number_of_generated_files(), 1);
+    }
+
+    #[test]
+    fn given_files_should_return_files() {
+        let file_content = "
+        columns:
+            - name: id
+              provider: Increment.integer
+        info:
+            output_name: expected_name
+            output_format: parquet
+            files: 3
+        "
+        .to_string();
+        let config = get_config_from_string(file_content).unwrap();
+        assert_eq!(config.get_number_of_generated_files(), 3);
     }
 }
