@@ -153,7 +153,8 @@ pub struct Info {
     /// By default, output_format is Parquet
     pub output_format: Option<OutputType>,
     pub rows: Option<u32>,
-    /// Number of outputed files, default is one. If more, they will be added in a folder
+    /// Number of outputted files, default is one. If more than one file is generated,
+    /// an index suffix is appended to the output file name.
     pub files: Option<u32>,
     /// Seed for deterministic random generation
     pub seed: Option<u64>,
@@ -218,7 +219,37 @@ impl Info {
             },
         };
 
-        let files = section_info["files"].as_i64().map(|files| files as u32);
+        let files = match section_info["files"].as_i64() {
+            Some(files) if files >= 1 && files <= u32::MAX as i64 => Some(files as u32),
+            Some(_) => {
+                return Err(FakeLakeError::BadYAMLFormat(
+                    "info.files should be an integer greater than or equal to 1".to_string(),
+                ))
+            }
+            None => match section_info["files"].as_str() {
+                Some(files_str) => {
+                    let normalized = files_str.replace('_', "");
+                    match normalized.parse::<u32>() {
+                        Ok(files) if files >= 1 => Some(files),
+                        _ => {
+                            return Err(FakeLakeError::BadYAMLFormat(
+                                "info.files should be an integer greater than or equal to 1"
+                                    .to_string(),
+                            ))
+                        }
+                    }
+                }
+                None => match section_info["files"] {
+                    Yaml::BadValue => None,
+                    _ => {
+                        return Err(FakeLakeError::BadYAMLFormat(
+                            "info.files should be an integer greater than or equal to 1"
+                                .to_string(),
+                        ))
+                    }
+                },
+            },
+        };
 
         // seed could be i64 or str (i64 with _ separators)
         let seed = match section_info["seed"].as_i64() {
@@ -828,7 +859,7 @@ mod tests {
             - name: id
               provider: Increment.integer
         info:
-            output_name: excpected_name
+            output_name: expected_name
             output_format: parquet
         "
         .to_string();

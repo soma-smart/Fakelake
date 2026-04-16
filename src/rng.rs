@@ -5,6 +5,9 @@ thread_local! {
     static RNG: RefCell<Option<Rng>> = const { RefCell::new(None) };
 }
 
+/// Domain tag used when deriving sub-seeds for per-file generation.
+pub const DOMAIN_FILE: u64 = 0;
+
 /// Domain tag used when deriving sub-seeds for provider draws.
 pub const DOMAIN_PROVIDER: u64 = 1;
 

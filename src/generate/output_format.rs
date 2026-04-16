@@ -30,7 +30,7 @@ pub trait OutputFormat {
                 format!("{}_{}", default_file_name, f)
             };
 
-            let file_seed = rng::derive_seed(root_seed, rng::DOMAIN_PROVIDER, &[f as u64]);
+            let file_seed = rng::derive_seed(root_seed, rng::DOMAIN_FILE, &[f as u64]);
             self.generate_file(&file_name, config, file_seed)?;
         }
 

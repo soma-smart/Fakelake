@@ -42,8 +42,8 @@ impl OutputFormat for OutputParquet {
         let batch_size = 8192 * 8;
         let iterations = (rows as f64 / batch_size as f64).ceil() as u32;
 
-        let file = std::fs::File::create(file_name).unwrap();
-        let mut writer = ArrowWriter::try_new(file, Arc::new(schema.clone()), Some(props)).unwrap();
+        let file = std::fs::File::create(file_name)?;
+        let mut writer = ArrowWriter::try_new(file, Arc::new(schema.clone()), Some(props))?;
 
         let mut schema_cols: Vec<(String, ArrayRef)> = Vec::new();
         let mut provider_generators: Vec<Box<dyn ParquetBatchGenerator>> = Vec::new();
@@ -80,10 +80,10 @@ impl OutputFormat for OutputParquet {
                 },
             );
 
-            let batch = RecordBatch::try_from_iter(schema_cols.lock().unwrap().clone()).unwrap();
-            writer.write(&batch).expect("Writing batch");
+            let batch = RecordBatch::try_from_iter(schema_cols.lock().unwrap().clone())?;
+            writer.write(&batch)?;
         }
-        writer.close().unwrap();
+        writer.close()?;
 
         Ok(())
     }
