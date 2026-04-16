@@ -52,7 +52,9 @@ impl Config {
         self.info
             .as_ref()
             .and_then(|i| i.seed)
-            .unwrap_or_else(|| fastrand::Rng::new().u64(..))
+            // Cap random seeds to i64::MAX so the value round-trips through
+            // YAML (yaml-rust stores integers as i64).
+            .unwrap_or_else(|| fastrand::Rng::new().u64(0..=i64::MAX as u64))
     }
 }
 

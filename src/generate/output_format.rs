@@ -22,6 +22,13 @@ pub trait OutputFormat {
         let default_file_name = config.get_output_file_name(self.get_extension());
         let files = config.get_number_of_generated_files();
         let root_seed = config.resolve_root_seed();
+        let seed_was_provided = config.info.as_ref().and_then(|i| i.seed).is_some();
+        if !seed_was_provided {
+            println!(
+                "No seed specified — using random seed: {} (add 'seed: {}' to your config to reproduce this run)",
+                root_seed, root_seed
+            );
+        }
 
         for f in 0..files {
             let file_name = if files == 1 {

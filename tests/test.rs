@@ -30,6 +30,10 @@ mod tests {
         fs::remove_file("target/csv_no_seed_test.csv").ok();
         fs::remove_file("target/csv_no_seed_test_2.csv").ok();
         fs::remove_file("target/csv_no_seed_test.yaml").ok();
+        fs::remove_file("target/csv_replay_seed_test.csv").ok();
+        fs::remove_file("target/csv_replay_seed_test_replayed.csv").ok();
+        fs::remove_file("target/csv_replay_seed_test.yaml").ok();
+        fs::remove_file("target/csv_replay_seed_test_replayed.yaml").ok();
         fs::remove_file("target/parallel_threads_1.parquet").ok();
         fs::remove_file("target/parallel_threads_8.parquet").ok();
         fs::remove_file("target/parallel_threads.yaml").ok();
@@ -455,6 +459,92 @@ info:
             fs::remove_file(format!("target/multifile_seeded_run2.parquet_{i}")).ok();
         }
         fs::remove_file(config_path).ok();
+        Ok(())
+    }
+
+    #[test]
+    fn given_no_seed_printed_seed_should_allow_replay() -> Result<(), Box<dyn std::error::Error>> {
+        // Run without a seed and capture the stderr output, which should contain
+        // a "seed: <N>" message that lets the user reproduce the run.
+        let config_content = r#"
+columns:
+  - name: id
+    provider: Increment.integer
+  - name: score
+    provider: Random.Number.i32
+    min: 0
+    max: 10000
+  - name: flag
+    provider: Random.bool
+
+info:
+  output_name: target/csv_replay_seed_test
+  output_format: csv
+  rows: 100
+"#;
+
+        let config_path = Path::new("target/csv_replay_seed_test.yaml");
+        let output_path = Path::new("target/csv_replay_seed_test.csv");
+        let replayed_path = Path::new("target/csv_replay_seed_test_replayed.csv");
+        let replayed_config_path = Path::new("target/csv_replay_seed_test_replayed.yaml");
+
+        fs::write(config_path, config_content)?;
+        fs::remove_file(output_path).ok();
+        fs::remove_file(replayed_path).ok();
+
+        // First run — no seed. Capture stdout to extract the printed seed.
+        let output = Command::cargo_bin("fakelake")?
+            .arg("generate")
+            .arg(config_path)
+            .output()?;
+        assert!(output.status.success(), "First run should succeed");
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+
+        // The seed line looks like: "… seed: 12345678901234 (add …)"
+        let seed: u64 = stdout
+            .lines()
+            .find(|line| line.contains("seed:"))
+            .and_then(|line| {
+                // Find the first decimal number after "seed: "
+                line.split("seed:").nth(1).and_then(|after| {
+                    after
+                        .split_whitespace()
+                        .next()
+                        .and_then(|s| s.parse::<u64>().ok())
+                })
+            })
+            .expect("Seed should be printed in stdout when no seed is specified");
+
+        // Second run — replay with the printed seed.
+        let replayed_config = format!(
+            "{}\n  seed: {}",
+            config_content.trim_end().replace(
+                "output_name: target/csv_replay_seed_test",
+                "output_name: target/csv_replay_seed_test_replayed"
+            ),
+            seed
+        );
+        fs::write(replayed_config_path, &replayed_config)?;
+
+        Command::cargo_bin("fakelake")?
+            .arg("generate")
+            .arg(replayed_config_path)
+            .assert()
+            .success();
+
+        let original = fs::read_to_string(output_path)?;
+        let replayed = fs::read_to_string(replayed_path)?;
+
+        assert_eq!(
+            original, replayed,
+            "Replaying with the printed seed should produce identical output"
+        );
+
+        fs::remove_file(output_path).ok();
+        fs::remove_file(replayed_path).ok();
+        fs::remove_file(config_path).ok();
+        fs::remove_file(replayed_config_path).ok();
         Ok(())
     }
 }
