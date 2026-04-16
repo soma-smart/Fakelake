@@ -109,6 +109,7 @@ mod tests {
             output_name: None,
             output_format: None,
             rows: None,
+            files: None,
             seed: None,
         });
         let config = Config {
@@ -126,6 +127,7 @@ mod tests {
             output_name: None,
             output_format: Some(OutputType::Parquet()),
             rows: None,
+            files: None,
             seed: None,
         });
         let config = Config {

@@ -37,6 +37,23 @@ impl Config {
             None => 1_000_000,
         }
     }
+
+    pub fn get_number_of_generated_files(&self) -> u32 {
+        match &self.info {
+            Some(info) => info.files.unwrap_or(1),
+            None => 1,
+        }
+    }
+
+    /// Resolve the run's root seed. If the YAML provides one, use it directly;
+    /// otherwise pick a random u64 once so that parallel sub-tasks within the
+    /// run still derive stable sub-seeds even without a user-provided seed.
+    pub fn resolve_root_seed(&self) -> u64 {
+        self.info
+            .as_ref()
+            .and_then(|i| i.seed)
+            .unwrap_or_else(|| fastrand::Rng::new().u64(..))
+    }
 }
 
 #[derive(Debug)]
@@ -136,6 +153,8 @@ pub struct Info {
     /// By default, output_format is Parquet
     pub output_format: Option<OutputType>,
     pub rows: Option<u32>,
+    /// Number of outputed files, default is one. If more, they will be added in a folder
+    pub files: Option<u32>,
     /// Seed for deterministic random generation
     pub seed: Option<u64>,
 }
@@ -199,6 +218,8 @@ impl Info {
             },
         };
 
+        let files = section_info["files"].as_i64().map(|files| files as u32);
+
         // seed could be i64 or str (i64 with _ separators)
         let seed = match section_info["seed"].as_i64() {
             Some(seed) => Some(seed as u64),
@@ -212,6 +233,7 @@ impl Info {
             output_name,
             output_format,
             rows,
+            files,
             seed,
         })
     }
@@ -229,9 +251,6 @@ pub fn get_config_from_string(file_content: String) -> Result<Config, FakeLakeEr
     };
 
     let info = Info::parse_info_section(&parsed_yaml).unwrap();
-
-    // Initialize the global RNG with the seed from the config
-    crate::rng::initialize_rng(info.seed);
 
     let config = Config {
         columns,
@@ -800,5 +819,36 @@ mod tests {
         .to_string();
         let config = get_config_from_string(file_content).unwrap();
         assert_eq!(config.get_number_of_rows(), 1_000);
+    }
+
+    #[test]
+    fn given_no_files_should_default_to_one() {
+        let file_content = "
+        columns:
+            - name: id
+              provider: Increment.integer
+        info:
+            output_name: excpected_name
+            output_format: parquet
+        "
+        .to_string();
+        let config = get_config_from_string(file_content).unwrap();
+        assert_eq!(config.get_number_of_generated_files(), 1);
+    }
+
+    #[test]
+    fn given_files_should_return_files() {
+        let file_content = "
+        columns:
+            - name: id
+              provider: Increment.integer
+        info:
+            output_name: expected_name
+            output_format: parquet
+            files: 3
+        "
+        .to_string();
+        let config = get_config_from_string(file_content).unwrap();
+        assert_eq!(config.get_number_of_generated_files(), 3);
     }
 }

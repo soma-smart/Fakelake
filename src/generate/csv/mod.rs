@@ -2,6 +2,7 @@ use crate::config::Config;
 use crate::errors::FakeLakeError;
 use crate::generate::output_format::OutputFormat;
 use crate::providers::provider::Value;
+use crate::rng;
 
 use csv::WriterBuilder;
 
@@ -30,47 +31,62 @@ impl OutputFormat for OutputCsv {
             ));
         }
 
-        let file_name = config.get_output_file_name(self.get_extension());
+        let default_file_name = config.get_output_file_name(self.get_extension());
         let rows = config.get_number_of_rows();
+        let files = config.get_number_of_generated_files();
+        let root_seed = config.resolve_root_seed();
 
-        let mut wtr = match WriterBuilder::new()
-            .delimiter(self.delimiter)
-            .from_path(file_name)
-        {
-            Ok(value) => value,
-            Err(e) => {
-                return Err(FakeLakeError::CSVError(e));
-            }
-        };
+        for f in 0..files {
+            let sub_seed = rng::derive_seed(root_seed, rng::DOMAIN_PROVIDER, &[f as u64]);
+            let _scope = rng::scoped_seeded(sub_seed);
 
-        let mut column_names: Vec<&str> = vec![];
-        for column in &config.columns {
-            column_names.push(&column.name);
-        }
-        if let Err(e) = wtr.write_record(column_names) {
-            return Err(FakeLakeError::CSVError(e));
-        }
+            let file_name = if files == 1 {
+                default_file_name.clone()
+            } else {
+                format!("{}_{}", default_file_name.clone(), f)
+            };
 
-        for i in 0..rows {
-            let mut row: Vec<String> = vec![];
-            for column in &config.columns {
-                let mut str_value = "".to_string();
-                if column.is_next_present() {
-                    str_value = match column.provider.value(i) {
-                        Value::Bool(value) => value.to_string(),
-                        Value::Int32(value) => value.to_string(),
-                        Value::Float64(value) => value.to_string(),
-                        Value::String(value) => value,
-                        Value::Date(value, date_format) => value.format(&date_format).to_string(),
-                        Value::Timestamp(value, date_format) => {
-                            value.format(&date_format).to_string()
-                        }
-                    };
+            let mut wtr = match WriterBuilder::new()
+                .delimiter(self.delimiter)
+                .from_path(file_name)
+            {
+                Ok(value) => value,
+                Err(e) => {
+                    return Err(FakeLakeError::CSVError(e));
                 }
-                row.push(str_value);
+            };
+
+            let mut column_names: Vec<&str> = vec![];
+            for column in &config.columns {
+                column_names.push(&column.name);
             }
-            if let Err(e) = wtr.write_record(row) {
+            if let Err(e) = wtr.write_record(column_names) {
                 return Err(FakeLakeError::CSVError(e));
+            }
+
+            for i in 0..rows {
+                let mut row: Vec<String> = vec![];
+                for column in &config.columns {
+                    let mut str_value = "".to_string();
+                    if column.is_next_present() {
+                        str_value = match column.provider.value(i) {
+                            Value::Bool(value) => value.to_string(),
+                            Value::Int32(value) => value.to_string(),
+                            Value::Float64(value) => value.to_string(),
+                            Value::String(value) => value,
+                            Value::Date(value, date_format) => {
+                                value.format(&date_format).to_string()
+                            }
+                            Value::Timestamp(value, date_format) => {
+                                value.format(&date_format).to_string()
+                            }
+                        };
+                    }
+                    row.push(str_value);
+                }
+                if let Err(e) = wtr.write_record(row) {
+                    return Err(FakeLakeError::CSVError(e));
+                }
             }
         }
 
@@ -111,6 +127,7 @@ mod tests {
                 output_name: name,
                 output_format: Some(OutputType::Csv(5)),
                 rows,
+                files: None,
                 seed: None,
             }),
         }
@@ -220,6 +237,7 @@ mod tests {
                 output_name: Some("target/test_generated/output_name".to_string()),
                 output_format: Some(OutputType::Csv(5)),
                 rows: Some(1000),
+                files: None,
                 seed: None,
             }),
         };

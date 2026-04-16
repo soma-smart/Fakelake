@@ -71,3 +71,4 @@ info:
   output_name: target/json_all_options
   output_format: json
   rows: 174_957
+  seed: 12345

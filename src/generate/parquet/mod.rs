@@ -4,6 +4,7 @@ pub mod utils;
 use crate::config::Config;
 use crate::errors::FakeLakeError;
 use crate::generate::output_format::OutputFormat;
+use crate::rng;
 use batch_generator::{parquet_batch_generator_builder, ParquetBatchGenerator};
 
 use arrow_array::{ArrayRef, Int32Array, RecordBatch};
@@ -30,8 +31,10 @@ impl OutputFormat for OutputParquet {
             ));
         }
 
-        let file_name = config.get_output_file_name(self.get_extension());
+        let default_file_name = config.get_output_file_name(self.get_extension());
         let rows = config.get_number_of_rows();
+        let files = config.get_number_of_generated_files();
+        let root_seed = config.resolve_root_seed();
 
         let schema = get_schema_from_config(config);
         debug!("Writing schema: {:?}", schema);
@@ -45,43 +48,58 @@ impl OutputFormat for OutputParquet {
         // ceil division
         let iterations = (rows as f64 / batch_size as f64).ceil() as u32;
 
-        let file = std::fs::File::create(file_name).unwrap();
-        let mut writer = ArrowWriter::try_new(file, Arc::new(schema.clone()), Some(props)).unwrap();
-
-        let mut schema_cols: Vec<(String, ArrayRef)> = Vec::new();
-        let mut provider_generators: Vec<Box<dyn ParquetBatchGenerator>> = Vec::new();
-        config.columns.clone().into_iter().for_each(|column| {
-            schema_cols.push((
-                column.clone().name,
-                Arc::new(Int32Array::from(vec![0])) as ArrayRef,
-            ));
-            provider_generators.push(parquet_batch_generator_builder(column.clone()))
-        });
-
-        for i in 0..iterations {
-            debug!("Generating batch {} of {}...", i, iterations);
-            let rows_to_generate = if i == iterations - 1 {
-                rows - (i * batch_size)
+        for f in 0..files {
+            let file_name = if files == 1 {
+                default_file_name.clone()
             } else {
-                batch_size
+                format!("{}_{}", default_file_name.clone(), f)
             };
+            let file = std::fs::File::create(file_name).unwrap();
+            let mut writer =
+                ArrowWriter::try_new(file, Arc::new(schema.clone()), Some(props.clone())).unwrap();
 
-            let schema_cols: Mutex<Vec<(String, ArrayRef)>> = Mutex::new(schema_cols.clone());
-            let provider_generators = provider_generators.clone();
+            let mut schema_cols: Vec<(String, ArrayRef)> = Vec::new();
+            let mut provider_generators: Vec<Box<dyn ParquetBatchGenerator>> = Vec::new();
+            config.columns.clone().into_iter().for_each(|column| {
+                schema_cols.push((
+                    column.clone().name,
+                    Arc::new(Int32Array::from(vec![0])) as ArrayRef,
+                ));
+                provider_generators.push(parquet_batch_generator_builder(column.clone()))
+            });
 
-            provider_generators.into_par_iter().enumerate().for_each(
-                |(index, provider_generator)| {
-                    let array = provider_generator.batch_array(rows_to_generate);
-                    schema_cols.lock().unwrap()[index] =
-                        (provider_generator.name().to_string(), array);
-                },
-            );
+            for i in 0..iterations {
+                debug!("Generating batch {} of {}...", i, iterations);
+                let rows_to_generate = if i == iterations - 1 {
+                    rows - (i * batch_size)
+                } else {
+                    batch_size
+                };
 
-            let batch = RecordBatch::try_from_iter(schema_cols.lock().unwrap().clone()).unwrap();
-            writer.write(&batch).expect("Writing batch");
+                let schema_cols: Mutex<Vec<(String, ArrayRef)>> = Mutex::new(schema_cols.clone());
+                let provider_generators = provider_generators.clone();
+
+                provider_generators.into_par_iter().enumerate().for_each(
+                    |(index, provider_generator)| {
+                        let sub_seed = rng::derive_seed(
+                            root_seed,
+                            rng::DOMAIN_PROVIDER,
+                            &[f as u64, i as u64, index as u64],
+                        );
+                        let _scope = rng::scoped_seeded(sub_seed);
+                        let array = provider_generator.batch_array(rows_to_generate);
+                        schema_cols.lock().unwrap()[index] =
+                            (provider_generator.name().to_string(), array);
+                    },
+                );
+
+                let batch =
+                    RecordBatch::try_from_iter(schema_cols.lock().unwrap().clone()).unwrap();
+                writer.write(&batch).expect("Writing batch");
+            }
+            // writer must be closed to write footer
+            writer.close().unwrap();
         }
-        // writer must be closed to write footer
-        writer.close().unwrap();
         Ok(())
     }
 }
@@ -130,6 +148,7 @@ mod tests {
                 output_name: None,
                 output_format: None,
                 rows: None,
+                files: None,
                 seed: None,
             }),
         };
@@ -158,6 +177,7 @@ mod tests {
                 output_name: Some("target/test_generated/not_default_file".to_string()),
                 output_format: None,
                 rows: None,
+                files: None,
                 seed: None,
             }),
         };
@@ -177,6 +197,7 @@ mod tests {
                 output_name: Some("target/test_generated/not_default_file".to_string()),
                 output_format: None,
                 rows: None,
+                files: None,
                 seed: None,
             }),
         };

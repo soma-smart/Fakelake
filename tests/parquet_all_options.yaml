@@ -86,3 +86,4 @@ info:
   output_name: target/parquet_all_options
   output_format: parquet
   rows: 174_957
+  seed: 12345

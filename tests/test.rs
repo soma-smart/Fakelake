@@ -30,6 +30,14 @@ mod tests {
         fs::remove_file("target/csv_no_seed_test.csv").ok();
         fs::remove_file("target/csv_no_seed_test_2.csv").ok();
         fs::remove_file("target/csv_no_seed_test.yaml").ok();
+        fs::remove_file("target/parallel_threads_1.parquet").ok();
+        fs::remove_file("target/parallel_threads_8.parquet").ok();
+        fs::remove_file("target/parallel_threads.yaml").ok();
+        fs::remove_file("target/multifile_seeded.yaml").ok();
+        for i in 0..4 {
+            fs::remove_file(format!("target/multifile_seeded_run1.parquet_{i}")).ok();
+            fs::remove_file(format!("target/multifile_seeded_run2.parquet_{i}")).ok();
+        }
     }
 
     #[test]
@@ -188,17 +196,18 @@ mod tests {
     #[test]
     fn given_same_seed_should_generate_identical_output() -> Result<(), Box<dyn std::error::Error>>
     {
-        let config_path = Path::new("tests/csv_all_options.yaml");
-        let output_path_1 = Path::new("target/csv_all_options.csv");
-        let output_path_2 = Path::new("target/csv_all_options_2.csv");
+        let config_path = Path::new("tests/parquet_all_options.yaml");
+        let output_path_1 = Path::new("target/parquet_all_options.parquet");
+        let output_path_2 = Path::new("target/parquet_all_options_2.parquet");
 
         // First generation
         let mut cmd1 = Command::cargo_bin("fakelake")?;
         cmd1.arg("generate").arg(config_path).assert().success();
 
-        // Verify first file was created and read its content
+        // Verify first file was created and read its content. Use read (bytes)
+        // rather than read_to_string — parquet is a binary format.
         assert!(output_path_1.exists(), "First output file was not created");
-        let content1 = fs::read_to_string(output_path_1)?;
+        let content1 = fs::read(output_path_1)?;
 
         // Rename first file to avoid conflict
         fs::rename(output_path_1, output_path_2)?;
@@ -209,7 +218,7 @@ mod tests {
 
         // Verify second file was created and read its content
         assert!(output_path_1.exists(), "Second output file was not created");
-        let content2 = fs::read_to_string(output_path_1)?;
+        let content2 = fs::read(output_path_1)?;
 
         // Compare the two files - they should be identical
         assert_eq!(
@@ -306,6 +315,146 @@ info:
         fs::remove_file(output_path_2).ok();
         fs::remove_file(config_path).ok();
 
+        Ok(())
+    }
+
+    #[test]
+    fn given_seeded_parquet_should_be_identical_across_thread_counts(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        // Seeded parquet config exercising the parallel writer with presence,
+        // corrupted, and variable-length string providers. Rendering it under
+        // different RAYON_NUM_THREADS settings must produce byte-identical files.
+        // Use a dedicated inline config so this test doesn't race with the
+        // shared-fixture parquet tests on target/parquet_all_options.parquet.
+        let config_content_1 = r#"
+columns:
+  - name: id
+    provider: Increment.integer
+  - name: code
+    provider: Random.String.alphanumeric
+    length: 5..15
+  - name: score
+    provider: Random.Number.i32
+    min: 0
+    max: 1000
+    presence: 0.7
+    corrupted: 0.05
+
+info:
+  output_name: target/parallel_threads_1
+  output_format: parquet
+  rows: 20000
+  seed: 7
+"#;
+        let config_content_2 =
+            config_content_1.replace("target/parallel_threads_1", "target/parallel_threads_8");
+
+        let config_path = Path::new("target/parallel_threads.yaml");
+        let out_single = Path::new("target/parallel_threads_1.parquet");
+        let out_multi = Path::new("target/parallel_threads_8.parquet");
+        fs::remove_file(out_single).ok();
+        fs::remove_file(out_multi).ok();
+
+        fs::write(config_path, config_content_1)?;
+        Command::cargo_bin("fakelake")?
+            .env("RAYON_NUM_THREADS", "1")
+            .arg("generate")
+            .arg(config_path)
+            .assert()
+            .success();
+
+        fs::write(config_path, &config_content_2)?;
+        Command::cargo_bin("fakelake")?
+            .env("RAYON_NUM_THREADS", "8")
+            .arg("generate")
+            .arg(config_path)
+            .assert()
+            .success();
+
+        let single_bytes = fs::read(out_single)?;
+        let multi_bytes = fs::read(out_multi)?;
+        assert_eq!(
+            single_bytes, multi_bytes,
+            "Seeded parquet output must be identical across thread counts"
+        );
+
+        fs::remove_file(out_single).ok();
+        fs::remove_file(out_multi).ok();
+        fs::remove_file(config_path).ok();
+        Ok(())
+    }
+
+    #[test]
+    fn given_seeded_multifile_parquet_should_be_reproducible(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        // 4-file seeded run twice → each file_i is reproducible, and file_0
+        // differs from file_1 (different sub-seeds per file-index).
+        let config_content = r#"
+columns:
+  - name: id
+    provider: Increment.integer
+  - name: code
+    provider: Random.String.alphanumeric
+    length: 5..15
+  - name: optional
+    provider: Random.Number.i32
+    min: 0
+    max: 1000
+    presence: 0.7
+    corrupted: 0.1
+
+info:
+  output_name: target/multifile_seeded_run1
+  output_format: parquet
+  rows: 500
+  files: 4
+  seed: 2024
+"#;
+        let config_path = Path::new("target/multifile_seeded.yaml");
+        fs::write(config_path, config_content)?;
+
+        // Run 1
+        Command::cargo_bin("fakelake")?
+            .arg("generate")
+            .arg(config_path)
+            .assert()
+            .success();
+        let run1: Vec<Vec<u8>> = (0..4)
+            .map(|i| fs::read(format!("target/multifile_seeded_run1.parquet_{i}")))
+            .collect::<Result<_, _>>()?;
+
+        // Run 2 — same config, write to a different prefix so we don't clobber run 1.
+        let config_content_2 = config_content.replace(
+            "output_name: target/multifile_seeded_run1",
+            "output_name: target/multifile_seeded_run2",
+        );
+        fs::write(config_path, &config_content_2)?;
+        Command::cargo_bin("fakelake")?
+            .arg("generate")
+            .arg(config_path)
+            .assert()
+            .success();
+        let run2: Vec<Vec<u8>> = (0..4)
+            .map(|i| fs::read(format!("target/multifile_seeded_run2.parquet_{i}")))
+            .collect::<Result<_, _>>()?;
+
+        // Each file_i is byte-identical across the two runs.
+        for (i, (a, b)) in run1.iter().zip(run2.iter()).enumerate() {
+            assert_eq!(a, b, "file {i} must be byte-identical between seeded runs");
+        }
+
+        // And different file indices must differ — sub-seeds are keyed on
+        // file-index, so they pick different data.
+        assert_ne!(
+            run1[0], run1[1],
+            "file_0 and file_1 should differ (different sub-seeds)"
+        );
+
+        for i in 0..4 {
+            fs::remove_file(format!("target/multifile_seeded_run1.parquet_{i}")).ok();
+            fs::remove_file(format!("target/multifile_seeded_run2.parquet_{i}")).ok();
+        }
+        fs::remove_file(config_path).ok();
         Ok(())
     }
 }
