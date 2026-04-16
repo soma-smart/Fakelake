@@ -39,8 +39,8 @@ mod tests {
         fs::remove_file("target/parallel_threads.yaml").ok();
         fs::remove_file("target/multifile_seeded.yaml").ok();
         for i in 0..4 {
-            fs::remove_file(format!("target/multifile_seeded_run1.parquet_{i}")).ok();
-            fs::remove_file(format!("target/multifile_seeded_run2.parquet_{i}")).ok();
+            fs::remove_file(format!("target/multifile_seeded_run1_{i}.parquet")).ok();
+            fs::remove_file(format!("target/multifile_seeded_run2_{i}.parquet")).ok();
         }
     }
 
@@ -424,7 +424,7 @@ info:
             .assert()
             .success();
         let run1: Vec<Vec<u8>> = (0..4)
-            .map(|i| fs::read(format!("target/multifile_seeded_run1.parquet_{i}")))
+            .map(|i| fs::read(format!("target/multifile_seeded_run1_{i}.parquet")))
             .collect::<Result<_, _>>()?;
 
         // Run 2 — same config, write to a different prefix so we don't clobber run 1.
@@ -439,7 +439,7 @@ info:
             .assert()
             .success();
         let run2: Vec<Vec<u8>> = (0..4)
-            .map(|i| fs::read(format!("target/multifile_seeded_run2.parquet_{i}")))
+            .map(|i| fs::read(format!("target/multifile_seeded_run2_{i}.parquet")))
             .collect::<Result<_, _>>()?;
 
         // Each file_i is byte-identical across the two runs.
@@ -455,8 +455,8 @@ info:
         );
 
         for i in 0..4 {
-            fs::remove_file(format!("target/multifile_seeded_run1.parquet_{i}")).ok();
-            fs::remove_file(format!("target/multifile_seeded_run2.parquet_{i}")).ok();
+            fs::remove_file(format!("target/multifile_seeded_run1_{i}.parquet")).ok();
+            fs::remove_file(format!("target/multifile_seeded_run2_{i}.parquet")).ok();
         }
         fs::remove_file(config_path).ok();
         Ok(())

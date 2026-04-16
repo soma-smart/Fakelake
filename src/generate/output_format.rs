@@ -30,11 +30,18 @@ pub trait OutputFormat {
             );
         }
 
+        let extension = self.get_extension();
+
         for f in 0..files {
             let file_name = if files == 1 {
                 default_file_name.clone()
             } else {
-                format!("{}_{}", default_file_name, f)
+                match default_file_name.rfind(extension) {
+                    Some(pos) if !extension.is_empty() => {
+                        format!("{}_{}{}", &default_file_name[..pos], f, extension)
+                    }
+                    _ => format!("{}_{}", default_file_name, f),
+                }
             };
 
             let file_seed = rng::derive_seed(root_seed, rng::DOMAIN_FILE, &[f as u64]);
