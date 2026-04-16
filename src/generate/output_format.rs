@@ -36,9 +36,9 @@ pub trait OutputFormat {
             let file_name = if files == 1 {
                 default_file_name.clone()
             } else {
-                match default_file_name.rfind(extension) {
-                    Some(pos) if !extension.is_empty() => {
-                        format!("{}_{}{}", &default_file_name[..pos], f, extension)
+                match default_file_name.strip_suffix(extension) {
+                    Some(stem) if !extension.is_empty() => {
+                        format!("{}_{}{}", stem, f, extension)
                     }
                     _ => format!("{}_{}", default_file_name, f),
                 }
