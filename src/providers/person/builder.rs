@@ -25,7 +25,10 @@ pub fn get_corresponding_provider(
         Some("email") => Ok(email::new_from_yaml(column)),
         Some("fname") => Ok(external::new(FIRST_NAMES.to_vec())),
         Some("lname") => Ok(external::new(LAST_NAMES.to_vec())),
-        _ => Err(FakeLakeError::BadYAMLFormat("".to_string())),
+        other => Err(FakeLakeError::BadYAMLFormat(format!(
+            "Unknown provider: person.{}. Expected one of: person.email, person.fname, person.lname",
+            other.unwrap_or("<missing>")
+        ))),
     }
 }
 

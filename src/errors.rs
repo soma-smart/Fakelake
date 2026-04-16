@@ -14,8 +14,14 @@ pub enum FakeLakeError {
 #[cfg(not(tarpaulin_include))]
 impl fmt::Display for FakeLakeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        // For now, use the debug derived version
-        write!(f, "{:?}", self)
+        match self {
+            FakeLakeError::BadYAMLFormat(msg) => write!(f, "{}", msg),
+            FakeLakeError::IOError(err) => write!(f, "IO error: {}", err),
+            FakeLakeError::CSVError(err) => write!(f, "CSV error: {}", err),
+            FakeLakeError::JSONError(err) => write!(f, "JSON error: {}", err),
+            FakeLakeError::ParquetError(err) => write!(f, "Parquet error: {}", err),
+            FakeLakeError::ArrowError(err) => write!(f, "Arrow error: {}", err),
+        }
     }
 }
 

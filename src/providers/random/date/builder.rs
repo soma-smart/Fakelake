@@ -13,7 +13,10 @@ pub fn get_corresponding_provider(
     match provider_split.next() {
         Some("date") => Ok(date::new_from_yaml(column)),
         Some("datetime") => Ok(datetime::new_from_yaml(column)),
-        _ => Err(FakeLakeError::BadYAMLFormat("".to_string())),
+        other => Err(FakeLakeError::BadYAMLFormat(format!(
+            "Unknown provider: random.date.{}. Expected one of: random.date.date, random.date.datetime",
+            other.unwrap_or("<missing>")
+        ))),
     }
 }
 

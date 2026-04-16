@@ -11,7 +11,10 @@ pub fn get_corresponding_provider(
 ) -> Result<Box<dyn Provider>, FakeLakeError> {
     match provider_split.next() {
         Some("alphanumeric") => Ok(alphanumeric::new_from_yaml(column)),
-        _ => Err(FakeLakeError::BadYAMLFormat("".to_string())),
+        other => Err(FakeLakeError::BadYAMLFormat(format!(
+            "Unknown provider: random.string.{}. Expected one of: random.string.alphanumeric",
+            other.unwrap_or("<missing>")
+        ))),
     }
 }
 

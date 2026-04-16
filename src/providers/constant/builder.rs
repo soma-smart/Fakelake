@@ -11,7 +11,10 @@ pub fn get_corresponding_provider(
     match provider_split.next() {
         Some("string") => Ok(string::new_from_yaml(column)),
         Some("external") => Ok(external::new_from_yaml(column)),
-        _ => Err(FakeLakeError::BadYAMLFormat("".to_string())),
+        other => Err(FakeLakeError::BadYAMLFormat(format!(
+            "Unknown provider: constant.{}. Expected one of: constant.string, constant.external",
+            other.unwrap_or("<missing>")
+        ))),
     }
 }
 

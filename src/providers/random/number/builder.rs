@@ -12,7 +12,10 @@ pub fn get_corresponding_provider(
     match provider_split.next() {
         Some("f64") => Ok(f64::new_from_yaml(column)),
         Some("i32") => Ok(i32::new_from_yaml(column)),
-        _ => Err(FakeLakeError::BadYAMLFormat("".to_string())),
+        other => Err(FakeLakeError::BadYAMLFormat(format!(
+            "Unknown provider: random.number.{}. Expected one of: random.number.f64, random.number.i32",
+            other.unwrap_or("<missing>")
+        ))),
     }
 }
 

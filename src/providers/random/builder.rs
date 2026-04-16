@@ -14,7 +14,10 @@ pub fn get_corresponding_provider(
         Some("date") => date::builder::get_corresponding_provider(provider_split, column),
         Some("number") => number::builder::get_corresponding_provider(provider_split, column),
         Some("string") => string::builder::get_corresponding_provider(provider_split, column),
-        _ => Err(FakeLakeError::BadYAMLFormat("".to_string())),
+        other => Err(FakeLakeError::BadYAMLFormat(format!(
+            "Unknown provider: random.{}. Expected one of: random.bool, random.date.*, random.number.*, random.string.*",
+            other.unwrap_or("<missing>")
+        ))),
     }
 }
 
