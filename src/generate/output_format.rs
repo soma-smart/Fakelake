@@ -9,8 +9,7 @@ pub trait OutputFormat {
         &self,
         file_name: &str,
         config: &Config,
-        root_seed: u64,
-        file_index: u32,
+        file_seed: u64,
     ) -> Result<(), FakeLakeError>;
 
     fn generate_from_config(&self, config: &Config) -> Result<(), FakeLakeError> {
@@ -31,8 +30,8 @@ pub trait OutputFormat {
                 format!("{}_{}", default_file_name, f)
             };
 
-            let sub_seed = rng::derive_seed(root_seed, rng::DOMAIN_PROVIDER, &[f as u64]);
-            self.generate_file(&file_name, config, sub_seed, f)?;
+            let file_seed = rng::derive_seed(root_seed, rng::DOMAIN_PROVIDER, &[f as u64]);
+            self.generate_file(&file_name, config, file_seed)?;
         }
 
         Ok(())

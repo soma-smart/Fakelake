@@ -28,10 +28,9 @@ impl OutputFormat for OutputCsv {
         &self,
         file_name: &str,
         config: &Config,
-        sub_seed: u64,
-        _file_index: u32,
+        file_seed: u64,
     ) -> Result<(), FakeLakeError> {
-        let _scope = rng::scoped_seeded(sub_seed);
+        let _scope = rng::scoped_seeded(file_seed);
         let rows = config.get_number_of_rows();
 
         let mut wtr = match WriterBuilder::new()

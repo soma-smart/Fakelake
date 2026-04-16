@@ -28,8 +28,7 @@ impl OutputFormat for OutputParquet {
         &self,
         file_name: &str,
         config: &Config,
-        sub_seed: u64,
-        file_index: u32,
+        file_seed: u64,
     ) -> Result<(), FakeLakeError> {
         let rows = config.get_number_of_rows();
 
@@ -70,9 +69,9 @@ impl OutputFormat for OutputParquet {
             provider_generators.into_par_iter().enumerate().for_each(
                 |(col_index, provider_generator)| {
                     let col_seed = rng::derive_seed(
-                        sub_seed,
+                        file_seed,
                         rng::DOMAIN_PROVIDER,
-                        &[file_index as u64, i as u64, col_index as u64],
+                        &[i as u64, col_index as u64],
                     );
                     let _scope = rng::scoped_seeded(col_seed);
                     let array = provider_generator.batch_array(rows_to_generate);

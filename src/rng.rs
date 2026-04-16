@@ -119,6 +119,11 @@ impl Drop for RngScope {
 /// returned must be kept alive for the duration of the work that should draw
 /// from this seeded stream. Panics if a scope is already active on this thread
 /// to prevent accidental nesting (which would silently shadow the outer seed).
+///
+/// **Important invariant**: the thread-local must be `None` when this is called.
+/// `with_rng` auto-initializes a random RNG on first use if `None`, which would
+/// then cause `scoped_seeded` to panic. Callers must ensure no rng helpers are
+/// called between a scope drop and the next `scoped_seeded` on the same thread.
 pub fn scoped_seeded(seed: u64) -> RngScope {
     RNG.with(|rng| {
         let mut rng_ref = rng.borrow_mut();
