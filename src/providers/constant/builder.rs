@@ -14,10 +14,7 @@ pub fn get_corresponding_provider(
     match provider_split.next() {
         Some("string") => Ok(string::new_from_yaml(column)),
         Some("external") => Ok(external::new_from_yaml(column)),
-        other => Err(unknown_provider(
-            &format!("constant.{}", other.unwrap_or("<missing>")),
-            AVAILABLE,
-        )),
+        other => Err(unknown_provider("constant", other, AVAILABLE)),
     }
 }
 

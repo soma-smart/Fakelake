@@ -14,10 +14,7 @@ pub fn get_corresponding_provider(
     match provider_split.next() {
         Some("f64") => Ok(f64::new_from_yaml(column)),
         Some("i32") => Ok(i32::new_from_yaml(column)),
-        other => Err(unknown_provider(
-            &format!("random.number.{}", other.unwrap_or("<missing>")),
-            AVAILABLE,
-        )),
+        other => Err(unknown_provider("random.number", other, AVAILABLE)),
     }
 }
 

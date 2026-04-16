@@ -27,10 +27,7 @@ pub fn get_corresponding_provider(
         Some("email") => Ok(email::new_from_yaml(column)),
         Some("fname") => Ok(external::new(FIRST_NAMES.to_vec())),
         Some("lname") => Ok(external::new(LAST_NAMES.to_vec())),
-        other => Err(unknown_provider(
-            &format!("person.{}", other.unwrap_or("<missing>")),
-            AVAILABLE,
-        )),
+        other => Err(unknown_provider("person", other, AVAILABLE)),
     }
 }
 

@@ -106,17 +106,28 @@ impl ProviderBuilder {
             Some("random") => {
                 providers::random::builder::get_corresponding_provider(provider_split, column)
             }
-            _ => Err(unknown_provider(
-                provider,
+            other => Err(unknown_provider(
+                "",
+                other,
                 &["constant.*", "increment.*", "person.*", "random.*"],
             )),
         }
     }
 }
 
-pub fn unknown_provider(wrong_provider: &str, available: &'static [&'static str]) -> FakeLakeError {
+pub fn unknown_provider(
+    prefix: &str,
+    segment: Option<&str>,
+    available: &'static [&'static str],
+) -> FakeLakeError {
+    let provider = match (prefix, segment) {
+        ("", Some(s)) => s.to_string(),
+        ("", None) => "<missing>".to_string(),
+        (p, Some(s)) => format!("{}.{}", p, s),
+        (p, None) => format!("{}.<missing>", p),
+    };
     FakeLakeError::UnknownProvider {
-        provider: wrong_provider.to_string(),
+        provider,
         available,
     }
 }

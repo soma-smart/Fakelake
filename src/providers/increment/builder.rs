@@ -13,10 +13,7 @@ pub fn get_corresponding_provider(
 ) -> Result<Box<dyn Provider>, FakeLakeError> {
     match provider_split.next() {
         Some("integer") => Ok(integer::new_from_yaml(column)),
-        other => Err(unknown_provider(
-            &format!("increment.{}", other.unwrap_or("<missing>")),
-            AVAILABLE,
-        )),
+        other => Err(unknown_provider("increment", other, AVAILABLE)),
     }
 }
 

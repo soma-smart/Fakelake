@@ -15,10 +15,7 @@ pub fn get_corresponding_provider(
     match provider_split.next() {
         Some("date") => Ok(date::new_from_yaml(column)),
         Some("datetime") => Ok(datetime::new_from_yaml(column)),
-        other => Err(unknown_provider(
-            &format!("random.date.{}", other.unwrap_or("<missing>")),
-            AVAILABLE,
-        )),
+        other => Err(unknown_provider("random.date", other, AVAILABLE)),
     }
 }
 

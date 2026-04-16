@@ -21,10 +21,7 @@ pub fn get_corresponding_provider(
         Some("date") => date::builder::get_corresponding_provider(provider_split, column),
         Some("number") => number::builder::get_corresponding_provider(provider_split, column),
         Some("string") => string::builder::get_corresponding_provider(provider_split, column),
-        other => Err(unknown_provider(
-            &format!("random.{}", other.unwrap_or("<missing>")),
-            AVAILABLE,
-        )),
+        other => Err(unknown_provider("random", other, AVAILABLE)),
     }
 }
 
