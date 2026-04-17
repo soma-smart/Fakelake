@@ -106,13 +106,30 @@ impl ProviderBuilder {
             Some("random") => {
                 providers::random::builder::get_corresponding_provider(provider_split, column)
             }
-            _ => Err(unknown_provider(provider)),
+            other => Err(unknown_provider(
+                "",
+                other,
+                &["constant.*", "increment.*", "person.*", "random.*"],
+            )),
         }
     }
 }
 
-pub fn unknown_provider(wrong_provider: &str) -> FakeLakeError {
-    FakeLakeError::BadYAMLFormat(format!("Unknown provider: {}", wrong_provider))
+pub fn unknown_provider(
+    prefix: &str,
+    segment: Option<&str>,
+    available: &'static [&'static str],
+) -> FakeLakeError {
+    let provider = match (prefix, segment) {
+        ("", Some(s)) => s.to_string(),
+        ("", None) => "<missing>".to_string(),
+        (p, Some(s)) => format!("{}.{}", p, s),
+        (p, None) => format!("{}.<missing>", p),
+    };
+    FakeLakeError::UnknownProvider {
+        provider,
+        available,
+    }
 }
 
 #[cfg(test)]
@@ -191,6 +208,36 @@ mod tests {
             match ProviderBuilder::get_corresponding_provider(provider_name, column) {
                 Ok(_) => (),
                 _ => panic!(),
+            }
+        }
+    }
+
+    #[test]
+    fn given_valid_provider_case_insensitive_should_return_provider() {
+        let provider_names = [
+            "Constant.String",
+            "CONSTANT.STRING",
+            "Increment.Integer",
+            "INCREMENT.INTEGER",
+            "Person.Email",
+            "PERSON.EMAIL",
+            "Random.String.Alphanumeric",
+            "RANDOM.STRING.ALPHANUMERIC",
+            "Random.Number.I32",
+            "RANDOM.NUMBER.F64",
+            "Random.Date.Date",
+            "RANDOM.DATE.DATETIME",
+        ];
+        for provider_name in provider_names {
+            let yaml_str = format!("name: name{}provider: {}", '\n', provider_name);
+            let column = &YamlLoader::load_from_str(yaml_str.as_str()).unwrap()[0];
+
+            match ProviderBuilder::get_corresponding_provider(provider_name, column) {
+                Ok(_) => (),
+                _ => panic!(
+                    "Provider '{}' should be resolved case-insensitively",
+                    provider_name
+                ),
             }
         }
     }

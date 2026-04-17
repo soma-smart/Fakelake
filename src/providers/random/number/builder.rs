@@ -1,9 +1,11 @@
 use crate::errors::FakeLakeError;
-use crate::providers::provider::Provider;
+use crate::providers::provider::{unknown_provider, Provider};
 
 use super::{f64, i32};
 
 use yaml_rust::Yaml;
+
+const AVAILABLE: &[&str] = &["random.number.f64", "random.number.i32"];
 
 pub fn get_corresponding_provider(
     mut provider_split: std::str::Split<'_, char>,
@@ -12,7 +14,7 @@ pub fn get_corresponding_provider(
     match provider_split.next() {
         Some("f64") => Ok(f64::new_from_yaml(column)),
         Some("i32") => Ok(i32::new_from_yaml(column)),
-        _ => Err(FakeLakeError::BadYAMLFormat("".to_string())),
+        other => Err(unknown_provider("random.number", other, AVAILABLE)),
     }
 }
 

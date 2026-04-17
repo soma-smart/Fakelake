@@ -126,7 +126,7 @@ impl Column {
             let provider: Box<dyn Provider> =
                 match ProviderBuilder::get_corresponding_provider(provider, column) {
                     Ok(value) => CorruptedProvider::new_from_yaml(column, value),
-                    Err(e) => return Err(FakeLakeError::BadYAMLFormat(e.to_string())),
+                    Err(e) => return Err(e),
                 };
 
             let column = Column {

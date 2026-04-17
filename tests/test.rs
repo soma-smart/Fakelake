@@ -39,8 +39,13 @@ mod tests {
         fs::remove_file("target/parallel_threads.yaml").ok();
         fs::remove_file("target/multifile_seeded.yaml").ok();
         for i in 0..4 {
-            fs::remove_file(format!("target/multifile_seeded_run1.parquet_{i}")).ok();
-            fs::remove_file(format!("target/multifile_seeded_run2.parquet_{i}")).ok();
+            fs::remove_file(format!("target/multifile_seeded_run1_{i}.parquet")).ok();
+            fs::remove_file(format!("target/multifile_seeded_run2_{i}.parquet")).ok();
+        }
+        fs::remove_file("target/multifile_naming.yaml").ok();
+        for i in 0..3 {
+            fs::remove_file(format!("target/multifile_naming_{i}.csv")).ok();
+            fs::remove_file(format!("target/multifile_naming_{i}.json")).ok();
         }
     }
 
@@ -424,7 +429,7 @@ info:
             .assert()
             .success();
         let run1: Vec<Vec<u8>> = (0..4)
-            .map(|i| fs::read(format!("target/multifile_seeded_run1.parquet_{i}")))
+            .map(|i| fs::read(format!("target/multifile_seeded_run1_{i}.parquet")))
             .collect::<Result<_, _>>()?;
 
         // Run 2 — same config, write to a different prefix so we don't clobber run 1.
@@ -439,7 +444,7 @@ info:
             .assert()
             .success();
         let run2: Vec<Vec<u8>> = (0..4)
-            .map(|i| fs::read(format!("target/multifile_seeded_run2.parquet_{i}")))
+            .map(|i| fs::read(format!("target/multifile_seeded_run2_{i}.parquet")))
             .collect::<Result<_, _>>()?;
 
         // Each file_i is byte-identical across the two runs.
@@ -455,9 +460,52 @@ info:
         );
 
         for i in 0..4 {
-            fs::remove_file(format!("target/multifile_seeded_run1.parquet_{i}")).ok();
-            fs::remove_file(format!("target/multifile_seeded_run2.parquet_{i}")).ok();
+            fs::remove_file(format!("target/multifile_seeded_run1_{i}.parquet")).ok();
+            fs::remove_file(format!("target/multifile_seeded_run2_{i}.parquet")).ok();
         }
+        fs::remove_file(config_path).ok();
+        Ok(())
+    }
+
+    #[test]
+    fn given_multifile_csv_and_json_should_name_files_with_index_before_extension(
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let config_path = Path::new("target/multifile_naming.yaml");
+
+        for format in &["csv", "json"] {
+            let config_content = format!(
+                r#"
+columns:
+  - name: id
+    provider: Increment.integer
+
+info:
+  output_name: target/multifile_naming
+  output_format: {}
+  rows: 3
+  files: 3
+  seed: 42
+"#,
+                format
+            );
+            fs::write(config_path, &config_content)?;
+            Command::cargo_bin("fakelake")?
+                .arg("generate")
+                .arg(config_path)
+                .assert()
+                .success();
+
+            for i in 0..3 {
+                let path = format!("target/multifile_naming_{i}.{format}");
+                assert!(Path::new(&path).exists(), "Expected file {} to exist", path);
+            }
+
+            // Clean up for next iteration
+            for i in 0..3 {
+                fs::remove_file(format!("target/multifile_naming_{i}.{format}")).ok();
+            }
+        }
+
         fs::remove_file(config_path).ok();
         Ok(())
     }
