@@ -25,7 +25,7 @@ jobs:
           toolchain: 1.90.0
           override: true
     - name: Set up Python
-      uses: actions/setup-python@v5.1.0
+      uses: actions/setup-python@v5.6.0
       with:
         python-version: '3.12'
     - name : Install dependencies for output validation
